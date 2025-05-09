@@ -27,3 +27,24 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+model Store {
+  id          String   @id @default(cuid())
+  shop        String   @unique
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  popups      Popup[]  @relation("StorePopups")
+}
+
+model Popup {
+  id         String   @id @default(cuid())
+  isActive   Boolean  @default(true)
+  config     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  storeId    String
+  store      Store    @relation("StorePopups", fields: [storeId], references: [id])
+}

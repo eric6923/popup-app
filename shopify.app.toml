@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://sudan-necessarily-instances-join.trycloudflare.com"
+application_url = "https://cosmetic-prague-learn-astronomy.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products,write_discounts"
 
 [auth]
 redirect_urls = [
-  "https://sudan-necessarily-instances-join.trycloudflare.com/auth/callback",
-  "https://sudan-necessarily-instances-join.trycloudflare.com/auth/shopify/callback",
-  "https://sudan-necessarily-instances-join.trycloudflare.com/api/auth/callback"
+  "https://cosmetic-prague-learn-astronomy.trycloudflare.com/auth/callback",
+  "https://cosmetic-prague-learn-astronomy.trycloudflare.com/auth/shopify/callback",
+  "https://cosmetic-prague-learn-astronomy.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
