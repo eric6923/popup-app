@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://stripes-straight-ag-styles.trycloudflare.com"
+application_url = "https://yet-sys-resulting-subaru.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://stripes-straight-ag-styles.trycloudflare.com/auth/callback",
-  "https://stripes-straight-ag-styles.trycloudflare.com/auth/shopify/callback",
-  "https://stripes-straight-ag-styles.trycloudflare.com/api/auth/callback"
+  "https://yet-sys-resulting-subaru.trycloudflare.com/auth/callback",
+  "https://yet-sys-resulting-subaru.trycloudflare.com/auth/shopify/callback",
+  "https://yet-sys-resulting-subaru.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://stripes-straight-ag-styles.trycloudflare.com/app/main"
+url = "https://yet-sys-resulting-subaru.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"
