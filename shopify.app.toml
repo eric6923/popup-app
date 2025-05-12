@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://exotic-mix-handmade-additional.trycloudflare.com"
+application_url = "https://interviews-placement-katrina-bonds.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://exotic-mix-handmade-additional.trycloudflare.com/auth/callback",
-  "https://exotic-mix-handmade-additional.trycloudflare.com/auth/shopify/callback",
-  "https://exotic-mix-handmade-additional.trycloudflare.com/api/auth/callback"
+  "https://interviews-placement-katrina-bonds.trycloudflare.com/auth/callback",
+  "https://interviews-placement-katrina-bonds.trycloudflare.com/auth/shopify/callback",
+  "https://interviews-placement-katrina-bonds.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://exotic-mix-handmade-additional.trycloudflare.com/app/main"
+url = "https://interviews-placement-katrina-bonds.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"
