@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { json } from "@remix-run/node"
-import { useLoaderData, useNavigate, useParams } from "@remix-run/react"
+import { json } from "@remix-run/node";
+import { useLoaderData, useNavigate, useParams } from "@remix-run/react";
 import {
   Button,
   Checkbox,
@@ -23,16 +23,23 @@ import {
   Tag,
   Listbox,
   AutoSelection,
-} from "@shopify/polaris"
-import { QuestionCircleIcon, ViewIcon, ExitIcon, DeleteIcon, ClockIcon, CalendarIcon } from "@shopify/polaris-icons"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import Tab2 from "./app.tab2"
-import Tab3 from "./app.tab3"
+} from "@shopify/polaris";
+import {
+  QuestionCircleIcon,
+  ViewIcon,
+  ExitIcon,
+  DeleteIcon,
+  ClockIcon,
+  CalendarIcon,
+} from "@shopify/polaris-icons";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Tab2 from "./app.tab2";
+import Tab3 from "./app.tab3";
 
 interface PopupData {
-  id: string
-  title: string
-  isPublished: boolean
+  id: string;
+  title: string;
+  isPublished: boolean;
 }
 
 export async function loader({ params }) {
@@ -41,9 +48,9 @@ export async function loader({ params }) {
     id: params.id,
     title: "Opt-in popup",
     isPublished: false,
-  }
+  };
 
-  return json({ popupData })
+  return json({ popupData });
 }
 
 // Mock data for popup editor
@@ -55,56 +62,56 @@ export async function loader({ params }) {
 
 export default function PopupEditor({ popupId, onClose } = {}) {
   // Get data from loader if available, otherwise use mock data
-  const loaderData = useLoaderData()
-  const params = useParams()
-  const navigate = useNavigate()
+  const loaderData = useLoaderData();
+  const params = useParams();
+  const navigate = useNavigate();
 
   // Create mock data for when component is used in a modal
   const mockPopupData = {
     id: popupId || "default-id",
     title: "Opt-in popup",
     isPublished: false,
-  }
+  };
 
   // Use loader data if available, otherwise use mock data
-  const { popupData = mockPopupData } = loaderData || {}
+  const { popupData = mockPopupData } = loaderData || {};
 
   // State for modal
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(true);
 
   // State for tabs
-  const [selectedTab, setSelectedTab] = useState(0)
+  const [selectedTab, setSelectedTab] = useState(0);
 
   // State for form fields
-  const [popupName, setPopupName] = useState(popupData.title)
-  const [discountOption, setDiscountOption] = useState("no-discount")
-  const [discountType, setDiscountType] = useState("percentage-off")
-  const [discountValue, setDiscountValue] = useState("10")
-  const [setExpiration, setSetExpiration] = useState(false)
-  const [expirationDays, setExpirationDays] = useState("30")
-  const [manualDiscountCode, setManualDiscountCode] = useState("")
-  const [manualDiscountError, setManualDiscountError] = useState(false)
-  const [showStickyBar, setShowStickyBar] = useState(false)
-  const [isPublished, setIsPublished] = useState(popupData.isPublished)
+  const [popupName, setPopupName] = useState(popupData.title);
+  const [discountOption, setDiscountOption] = useState("no-discount");
+  const [discountType, setDiscountType] = useState("percentage-off");
+  const [discountValue, setDiscountValue] = useState("10");
+  const [setExpiration, setSetExpiration] = useState(false);
+  const [expirationDays, setExpirationDays] = useState("30");
+  const [manualDiscountCode, setManualDiscountCode] = useState("");
+  const [manualDiscountError, setManualDiscountError] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [isPublished, setIsPublished] = useState(popupData.isPublished);
 
   // State for device preview
-  const [selectedDevice, setSelectedDevice] = useState("desktop")
+  const [selectedDevice, setSelectedDevice] = useState("desktop");
 
   // Trigger options states
-  const [triggerOption, setTriggerOption] = useState("timer")
-  const [delayTime, setDelayTime] = useState("Immediately")
-  const [scrollPercentage, setScrollPercentage] = useState("50")
+  const [triggerOption, setTriggerOption] = useState("timer");
+  const [delayTime, setDelayTime] = useState("Immediately");
+  const [scrollPercentage, setScrollPercentage] = useState("50");
 
   // Frequency options states
-  const [frequencyOption, setFrequencyOption] = useState("limit")
-  const [frequencyLimit, setFrequencyLimit] = useState("2")
-  const [frequencyPeriod, setFrequencyPeriod] = useState("Day")
+  const [frequencyOption, setFrequencyOption] = useState("limit");
+  const [frequencyLimit, setFrequencyLimit] = useState("2");
+  const [frequencyPeriod, setFrequencyPeriod] = useState("Day");
 
   // Page rules states
-  const [pageRuleOption, setPageRuleOption] = useState("specific")
-  const [matchOption, setMatchOption] = useState("any")
-  const [pageCondition, setPageCondition] = useState("Equals")
-  const [pagePath, setPagePath] = useState("")
+  const [pageRuleOption, setPageRuleOption] = useState("specific");
+  const [matchOption, setMatchOption] = useState("any");
+  const [pageCondition, setPageCondition] = useState("Equals");
+  const [pagePath, setPagePath] = useState("");
 
   // Delay options
   const delayOptions = [
@@ -113,14 +120,14 @@ export default function PopupEditor({ popupId, onClose } = {}) {
     { label: "10 seconds", value: "10 seconds" },
     { label: "15 seconds", value: "15 seconds" },
     { label: "30 seconds", value: "30 seconds" },
-  ]
+  ];
 
   // Period options
   const periodOptions = [
     { label: "Day", value: "Day" },
     { label: "Week", value: "Week" },
     { label: "Month", value: "Month" },
-  ]
+  ];
 
   // Page condition options
   const pageConditionOptions = [
@@ -128,45 +135,48 @@ export default function PopupEditor({ popupId, onClose } = {}) {
     { label: "Contains", value: "Contains" },
     { label: "Starts with", value: "Starts with" },
     { label: "Ends with", value: "Ends with" },
-  ]
+  ];
 
   // Handle popup name change
-  const handlePopupNameChange = useCallback((newValue) => setPopupName(newValue), [])
+  const handlePopupNameChange = useCallback(
+    (newValue) => setPopupName(newValue),
+    [],
+  );
 
   // Handle tab change
   const handleTabChange = useCallback((selectedTabIndex) => {
-    setSelectedTab(selectedTabIndex)
-  }, [])
+    setSelectedTab(selectedTabIndex);
+  }, []);
 
   // Handle manual discount code change
   const handleManualDiscountChange = useCallback((value) => {
-    setManualDiscountCode(value)
-    setManualDiscountError(value.trim() === "")
-  }, [])
+    setManualDiscountCode(value);
+    setManualDiscountError(value.trim() === "");
+  }, []);
 
   // Handle expiration days change
   const handleExpirationDaysChange = useCallback((value) => {
-    setExpirationDays(value)
-  }, [])
+    setExpirationDays(value);
+  }, []);
 
   // Set manual discount error when switching to manual mode
   useEffect(() => {
     if (discountOption === "manual-discount") {
-      setManualDiscountError(manualDiscountCode.trim() === "")
+      setManualDiscountError(manualDiscountCode.trim() === "");
     }
-  }, [discountOption, manualDiscountCode])
+  }, [discountOption, manualDiscountCode]);
 
   // Handle back button click (close modal)
   const handleBackClick = useCallback(() => {
-    setIsOpen(false)
+    setIsOpen(false);
     if (onClose) {
       // If onClose prop is provided, use it (when in modal)
-      onClose()
+      onClose();
     } else {
       // Otherwise navigate back (when used as a route)
-      setTimeout(() => navigate("/popups"), 500)
+      setTimeout(() => navigate("/popups"), 500);
     }
-  }, [navigate, onClose])
+  }, [navigate, onClose]);
 
   // Configuration tabs
   const tabs = [
@@ -182,42 +192,42 @@ export default function PopupEditor({ popupId, onClose } = {}) {
       id: "style",
       content: "Style",
     },
-  ]
+  ];
 
   const discountTypes = [
     { label: "Percentage off", value: "percentage-off" },
     { label: "Fixed amount off", value: "fixed-amount" },
     { label: "Free shipping", value: "free-shipping" },
-  ]
+  ];
 
   const previewTabs = [
     { id: "start", content: "Start status" },
     { id: "success", content: "Success status" },
     { id: "sticky", content: "Sticky discount bar" },
     { id: "sidebar", content: "Sidebar widget" },
-  ]
+  ];
 
-  const [scheduleOption, setScheduleOption] = useState("all-time")
-  const [startDate, setStartDate] = useState("2025-05-11")
-  const [endDate, setEndDate] = useState("2025-05-11")
-  const [startTime, setStartTime] = useState("20:44")
-  const [endTime, setEndTime] = useState("20:44")
-  const [hasEndDate, setHasEndDate] = useState(true) // Changed the variable name
+  const [scheduleOption, setScheduleOption] = useState("all-time");
+  const [startDate, setStartDate] = useState("2025-05-11");
+  const [endDate, setEndDate] = useState("2025-05-11");
+  const [startTime, setStartTime] = useState("20:44");
+  const [endTime, setEndTime] = useState("20:44");
+  const [hasEndDate, setHasEndDate] = useState(true); // Changed the variable name
 
   // Add these handlers
-  const handleStartDateChange = useCallback((value) => setStartDate(value), [])
-  const handleEndDateChange = useCallback((value) => setEndDate(value), [])
-  const handleStartTimeChange = useCallback((value) => setStartTime(value), [])
-  const handleEndTimeChange = useCallback((value) => setEndTime(value), [])
+  const handleStartDateChange = useCallback((value) => setStartDate(value), []);
+  const handleEndDateChange = useCallback((value) => setEndDate(value), []);
+  const handleStartTimeChange = useCallback((value) => setStartTime(value), []);
+  const handleEndTimeChange = useCallback((value) => setEndTime(value), []);
 
   // Country selection data
-  const [locationRuleOption, setLocationRuleOption] = useState("any")
+  const [locationRuleOption, setLocationRuleOption] = useState("any");
 
   // State for country selection
-  const [selectedCountries, setSelectedCountries] = useState([])
-  const [excludedCountries, setExcludedCountries] = useState([])
-  const [countryInputValue, setCountryInputValue] = useState("")
-  const [countryPopoverActive, setCountryPopoverActive] = useState(false)
+  const [selectedCountries, setSelectedCountries] = useState([]);
+  const [excludedCountries, setExcludedCountries] = useState([]);
+  const [countryInputValue, setCountryInputValue] = useState("");
+  const [countryPopoverActive, setCountryPopoverActive] = useState(false);
 
   // Sample country options - replace with your full list
   const allCountries = useMemo(
@@ -235,65 +245,76 @@ export default function PopupEditor({ popupId, onClose } = {}) {
       // Add more countries as needed
     ],
     [],
-  )
+  );
 
   // Filter countries based on input
   const countryOptions = useMemo(() => {
-    return allCountries.filter((country) => country.label.toLowerCase().includes(countryInputValue.toLowerCase()))
-  }, [allCountries, countryInputValue])
+    return allCountries.filter((country) =>
+      country.label.toLowerCase().includes(countryInputValue.toLowerCase()),
+    );
+  }, [allCountries, countryInputValue]);
 
   // Toggle popover
   const toggleCountryPopover = useCallback(() => {
-    setCountryPopoverActive((active) => !active)
-  }, [])
+    setCountryPopoverActive((active) => !active);
+  }, []);
 
   // Handle input change
   const handleCountryInputChange = useCallback((value) => {
-    setCountryInputValue(value)
-  }, [])
+    setCountryInputValue(value);
+  }, []);
 
   // Handle country selection
   const handleCountryChange = useCallback(
     (selected) => {
-      const isExcludeMode = locationRuleOption === "exclude"
+      const isExcludeMode = locationRuleOption === "exclude";
       if (isExcludeMode) {
-        setExcludedCountries(selected)
+        setExcludedCountries(selected);
       } else {
-        setSelectedCountries(selected)
+        setSelectedCountries(selected);
       }
       // Don't close popover to allow multiple selections
     },
     [locationRuleOption],
-  )
+  );
 
   // Handle country removal
   const handleCountryRemove = useCallback(
     (countryToRemove) => {
-      const isExcludeMode = locationRuleOption === "exclude"
+      const isExcludeMode = locationRuleOption === "exclude";
       if (isExcludeMode) {
-        setExcludedCountries((prev) => prev.filter((country) => country !== countryToRemove))
+        setExcludedCountries((prev) =>
+          prev.filter((country) => country !== countryToRemove),
+        );
       } else {
-        setSelectedCountries((prev) => prev.filter((country) => country !== countryToRemove))
+        setSelectedCountries((prev) =>
+          prev.filter((country) => country !== countryToRemove),
+        );
       }
     },
     [locationRuleOption],
-  )
+  );
 
   // Clear input when changing location rule option
   const handleLocationRuleChange = useCallback((value) => {
-    setLocationRuleOption(value)
-    setCountryInputValue("")
-    setCountryPopoverActive(false)
-  }, [])
+    setLocationRuleOption(value);
+    setCountryInputValue("");
+    setCountryPopoverActive(false);
+  }, []);
 
   // Get the current active countries based on mode
-  const activeCountries = locationRuleOption === "exclude" ? excludedCountries : selectedCountries
+  const activeCountries =
+    locationRuleOption === "exclude" ? excludedCountries : selectedCountries;
 
   // Add these handlers for date and time
 
-  const formatDateForDisplay = (dateObj: { year: any; month: any; day: any }) => {
-    return `${dateObj.year}-${String(dateObj.month).padStart(2, "0")}-${String(dateObj.day).padStart(2, "0")}`
-  }
+  const formatDateForDisplay = (dateObj: {
+    year: any;
+    month: any;
+    day: any;
+  }) => {
+    return `${dateObj.year}-${String(dateObj.month).padStart(2, "0")}-${String(dateObj.day).padStart(2, "0")}`;
+  };
 
   return (
     <Frame>
@@ -322,7 +343,12 @@ export default function PopupEditor({ popupId, onClose } = {}) {
           }}
         >
           <InlineStack align="start" gap="200">
-            <Button icon={ExitIcon} onClick={handleBackClick} variant="plain" accessibilityLabel="Back">
+            <Button
+              icon={ExitIcon}
+              onClick={handleBackClick}
+              variant="plain"
+              accessibilityLabel="Back"
+            >
               Back
             </Button>
 
@@ -365,7 +391,11 @@ export default function PopupEditor({ popupId, onClose } = {}) {
           >
             {/* Tabs with white background */}
             <div style={{ backgroundColor: "white" }}>
-              <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange} />
+              <Tabs
+                tabs={tabs}
+                selected={selectedTab}
+                onSelect={handleTabChange}
+              />
             </div>
 
             <div
@@ -408,12 +438,14 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                             alignItems: "center",
                           }}
                         >
-                          <Checkbox
-                            label=""
-                            labelHidden
-                            checked={isPublished}
-                            onChange={() => setIsPublished(!isPublished)}
-                          />
+                          <label className="toggle-switch">
+                            <input
+                              type="checkbox"
+                              checked={isPublished}
+                              onChange={() => setIsPublished(!isPublished)}
+                            />
+                            <span className="slider"></span>
+                          </label>
                         </div>
                       </InlineStack>
                     </div>
@@ -459,7 +491,7 @@ export default function PopupEditor({ popupId, onClose } = {}) {
 
                     borderRadius: "8px",
                     borderWidth: "1px",
-                    borderStyle: "solid", 
+                    borderStyle: "solid",
                     borderColor: "#dde0e4",
                   }}
                 >
@@ -492,7 +524,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                         <div style={{ paddingLeft: "26px" }}>
                           <BlockStack gap="300">
                             <Text variant="bodySm">
-                              Auto-generate a unique and non-reusable code for each subscription.
+                              Auto-generate a unique and non-reusable code for
+                              each subscription.
                             </Text>
 
                             <div>
@@ -512,7 +545,12 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                               <Text variant="bodySm" as="p">
                                 Value
                               </Text>
-                              <div style={{ display: "flex", alignItems: "center" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
                                 <TextField
                                   type="text"
                                   value={discountValue}
@@ -534,14 +572,21 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                                 <Text variant="bodySm" as="p">
                                   Expiration days
                                 </Text>
-                                <div style={{ display: "flex", alignItems: "center" }}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
                                   <TextField
                                     type="number"
                                     value={expirationDays}
                                     onChange={handleExpirationDaysChange}
                                     autoComplete="off"
                                   />
-                                  <span style={{ marginLeft: "8px" }}>days</span>
+                                  <span style={{ marginLeft: "8px" }}>
+                                    days
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -562,7 +607,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                           <div style={{ position: "relative" }}>
                             <div
                               style={{
-                                backgroundColor: manualDiscountError ? "#FFF4F4" : "white",
+                                backgroundColor: manualDiscountError
+                                  ? "#FFF4F4"
+                                  : "white",
                                 padding: "1px",
                               }}
                             >
@@ -588,8 +635,13 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                               </div>
                             )}
                           </div>
-                          <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
-                            <Link url="#">Create a discount</Link> in your Shopify admin, and enter it above.
+                          <Text
+                            as="p"
+                            variant="bodySm"
+                            style={{ marginTop: "8px" }}
+                          >
+                            <Link url="#">Create a discount</Link> in your
+                            Shopify admin, and enter it above.
                           </Text>
                         </div>
                       )}
@@ -614,7 +666,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       Sticky discount bar
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display a sticky discount bar at the top of your website after a successful subscription.
+                      Display a sticky discount bar at the top of your website
+                      after a successful subscription.
                     </Text>
 
                     <div style={{ marginTop: "8px" }}>
@@ -656,7 +709,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       Sidebar widget
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display a sidebar widget if the customer declines the popup without subscribing.
+                      Display a sidebar widget if the customer declines the
+                      popup without subscribing.
                     </Text>
 
                     <div style={{ marginTop: "8px" }}>
@@ -709,7 +763,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                         />
 
                         {triggerOption === "timer" && (
-                          <div style={{ paddingLeft: "26px", marginTop: "-8px" }}>
+                          <div
+                            style={{ paddingLeft: "26px", marginTop: "-8px" }}
+                          >
                             <Select
                               label=""
                               labelInline
@@ -779,8 +835,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       FREQUENCY
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Number of times the popup will show on browser for non-subscribed customers based on selected
-                      time.
+                      Number of times the popup will show on browser for
+                      non-subscribed customers based on selected time.
                     </Text>
 
                     <BlockStack gap="100">
@@ -851,7 +907,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       PAGE RULES
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display the popup based on your set rules. <Link url="#">Learn more</Link>.
+                      Display the popup based on your set rules.{" "}
+                      <Link url="#">Learn more</Link>.
                     </Text>
 
                     <BlockStack gap="100">
@@ -875,14 +932,18 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                         <BlockStack gap="400">
                           <InlineStack gap="200">
                             <Button
-                              variant={matchOption === "any" ? "primary" : "secondary"}
+                              variant={
+                                matchOption === "any" ? "primary" : "secondary"
+                              }
                               onClick={() => setMatchOption("any")}
                               size="slim"
                             >
                               Match any
                             </Button>
                             <Button
-                              variant={matchOption === "all" ? "primary" : "secondary"}
+                              variant={
+                                matchOption === "all" ? "primary" : "secondary"
+                              }
                               onClick={() => setMatchOption("all")}
                               size="slim"
                             >
@@ -950,7 +1011,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       LOCATION RULES
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display the popup based on your set rules. <Link url="#">Learn more</Link>.
+                      Display the popup based on your set rules.{" "}
+                      <Link url="#">Learn more</Link>.
                     </Text>
 
                     <BlockStack gap="300">
@@ -983,7 +1045,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                                     onChange={handleCountryInputChange}
                                     placeholder="Search countries"
                                     autoComplete="off"
-                                    onFocus={() => setCountryPopoverActive(true)}
+                                    onFocus={() =>
+                                      setCountryPopoverActive(true)
+                                    }
                                   />
                                 </div>
                               }
@@ -1001,7 +1065,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                                     <Listbox.Option
                                       key={option.value}
                                       value={option.value}
-                                      selected={selectedCountries.includes(option.value)}
+                                      selected={selectedCountries.includes(
+                                        option.value,
+                                      )}
                                     >
                                       {option.label}
                                     </Listbox.Option>
@@ -1010,15 +1076,29 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                               </Combobox>
                             </Popover>
 
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "8px",
+                                marginTop: "8px",
+                              }}
+                            >
                               {selectedCountries.map((country) => {
                                 const countryLabel =
-                                  allCountries.find((option) => option.value === country)?.label || country
+                                  allCountries.find(
+                                    (option) => option.value === country,
+                                  )?.label || country;
                                 return (
-                                  <Tag key={country} onRemove={() => handleCountryRemove(country)}>
+                                  <Tag
+                                    key={country}
+                                    onRemove={() =>
+                                      handleCountryRemove(country)
+                                    }
+                                  >
                                     {countryLabel}
                                   </Tag>
-                                )
+                                );
                               })}
                             </div>
                           </BlockStack>
@@ -1046,7 +1126,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                                     onChange={handleCountryInputChange}
                                     placeholder="Search countries"
                                     autoComplete="off"
-                                    onFocus={() => setCountryPopoverActive(true)}
+                                    onFocus={() =>
+                                      setCountryPopoverActive(true)
+                                    }
                                   />
                                 </div>
                               }
@@ -1064,7 +1146,9 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                                     <Listbox.Option
                                       key={option.value}
                                       value={option.value}
-                                      selected={excludedCountries.includes(option.value)}
+                                      selected={excludedCountries.includes(
+                                        option.value,
+                                      )}
                                     >
                                       {option.label}
                                     </Listbox.Option>
@@ -1073,15 +1157,29 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                               </Combobox>
                             </Popover>
 
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "8px",
+                                marginTop: "8px",
+                              }}
+                            >
                               {excludedCountries.map((country) => {
                                 const countryLabel =
-                                  allCountries.find((option) => option.value === country)?.label || country
+                                  allCountries.find(
+                                    (option) => option.value === country,
+                                  )?.label || country;
                                 return (
-                                  <Tag key={country} onRemove={() => handleCountryRemove(country)}>
+                                  <Tag
+                                    key={country}
+                                    onRemove={() =>
+                                      handleCountryRemove(country)
+                                    }
+                                  >
                                     {countryLabel}
                                   </Tag>
-                                )
+                                );
                               })}
                             </div>
                           </BlockStack>
@@ -1211,7 +1309,13 @@ export default function PopupEditor({ popupId, onClose } = {}) {
 
           {/* Right Panel - Preview */}
           <div
-            style={{ flex: 1, backgroundColor: "#f6f6f7", padding: "16px", display: "flex", flexDirection: "column" }}
+            style={{
+              flex: 1,
+              backgroundColor: "#f6f6f7",
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+            }}
           >
             {/* Device toggle */}
             <div
@@ -1222,10 +1326,16 @@ export default function PopupEditor({ popupId, onClose } = {}) {
               }}
             >
               <ButtonGroup segmented>
-                <Button pressed={selectedDevice === "desktop"} onClick={() => setSelectedDevice("desktop")}>
+                <Button
+                  pressed={selectedDevice === "desktop"}
+                  onClick={() => setSelectedDevice("desktop")}
+                >
                   Desktop
                 </Button>
-                <Button pressed={selectedDevice === "mobile"} onClick={() => setSelectedDevice("mobile")}>
+                <Button
+                  pressed={selectedDevice === "mobile"}
+                  onClick={() => setSelectedDevice("mobile")}
+                >
                   Mobile
                 </Button>
               </ButtonGroup>
@@ -1264,9 +1374,8 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                     marginBottom: "12px",
                   }}
                 >
-                  <Button plain variant="monochrome">
-                    ✕
-                  </Button>
+                  {/* Change to normal button */}
+                  <Button variant="plain">✕</Button>
                 </div>
 
                 <BlockStack gap="500">
@@ -1284,20 +1393,27 @@ export default function PopupEditor({ popupId, onClose } = {}) {
                       borderRadius: "4px",
                     }}
                   >
-                    <Text variant="bodyMd" color="subdued">
+                    <Text as="p" variant="bodyMd">
                       Email address
                     </Text>
                   </div>
 
-                  <Button variant="primary" fullWidth>
+                  <button
+                    style={{
+                      backgroundColor: "black",
+                      color: "white",
+                      padding: "12px",
+                    }}
+                  >
                     Claim discount
-                  </Button>
+                  </button>
                   <Button variant="plain" fullWidth>
                     No, thanks
                   </Button>
 
                   <Text variant="bodySm" as="p" alignment="center">
-                    You are signing up to receive communication via email and can unsubscribe at any time.
+                    You are signing up to receive communication via email and
+                    can unsubscribe at any time.
                   </Text>
                 </BlockStack>
               </div>
@@ -1306,5 +1422,5 @@ export default function PopupEditor({ popupId, onClose } = {}) {
         </div>
       </div>
     </Frame>
-  )
+  );
 }

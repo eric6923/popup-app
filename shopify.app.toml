@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://reads-au-airplane-budgets.trycloudflare.com"
+application_url = "https://workout-become-connecticut-they.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://reads-au-airplane-budgets.trycloudflare.com/auth/callback",
-  "https://reads-au-airplane-budgets.trycloudflare.com/auth/shopify/callback",
-  "https://reads-au-airplane-budgets.trycloudflare.com/api/auth/callback"
+  "https://workout-become-connecticut-they.trycloudflare.com/auth/callback",
+  "https://workout-become-connecticut-they.trycloudflare.com/auth/shopify/callback",
+  "https://workout-become-connecticut-they.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://reads-au-airplane-budgets.trycloudflare.com/app/main"
+url = "https://workout-become-connecticut-they.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"

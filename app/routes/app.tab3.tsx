@@ -314,9 +314,10 @@ export default function ImageSettings() {
         <Divider />
         
         {/* CSS Section */}
-        <div style={{ marginTop: '16px' }}>
+        <div style={{ marginTop: '16px', }}>
+          <BlockStack gap="200">
           <Text as="p" variant="bodyMd" fontWeight="bold">CSS</Text>
-          <Text as="p" variant="bodyMd">Add CSS codes here to do some custom change, this won't influence your store theme.</Text>
+          <Text as="p" variant="bodySm">Add CSS codes here to do some custom change, this won't influence your store theme.</Text>
           <TextField
             label=""
             value={cssCode}
@@ -324,6 +325,7 @@ export default function ImageSettings() {
             multiline={6}
             autoComplete="off"
           />
+          </BlockStack>
         </div>
       </div>
     </BlockStack>
