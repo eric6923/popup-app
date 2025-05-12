@@ -1,7 +1,5 @@
-"use client"
-
 import { useState } from "react"
-import { Page, Card, Text, Button, Icon, Modal } from "@shopify/polaris"
+import { Page, Card, Text, Button, Icon, Modal, Badge, ButtonGroup, FullscreenBar } from "@shopify/polaris"
 import { MenuHorizontalIcon } from "@shopify/polaris-icons"
 import modal1 from "./assets/modal1.webp"
 import modal2 from "./assets/modal2.webp"
@@ -574,6 +572,31 @@ export default function PopupLibraryPage() {
       {customizingPopupId && (
         <Modal open={true} onClose={handleCloseCustomize} title="" size="fullScreen" noScroll>
           <div style={{ height: "100vh" }}>
+            <FullscreenBar onAction={handleCloseCustomize}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexGrow: 1,
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
+                }}
+              >
+                <Badge tone="info">Unpublished</Badge>
+                <div style={{marginLeft: '1rem', flexGrow: 1}}>
+                  <Text variant="headingLg" as="p">
+                    Opt-in popup
+                  </Text>
+                </div>
+                <ButtonGroup>
+                  <Button onClick={() => console.log('Need help clicked')}>Need help?</Button>
+                  <Button variant="primary" onClick={() => console.log('Preview clicked')}>
+                    Preview this popup
+                  </Button>
+                </ButtonGroup>
+              </div>
+            </FullscreenBar>
             <PopupEditor popupId={customizingPopupId} onClose={handleCloseCustomize} />
           </div>
         </Modal>

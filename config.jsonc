@@ -1,0 +1,79 @@
+{
+  "rules": {
+    "popupName": "Opt-in popup",
+    //Discount
+    "discount": {
+      "no_discount": {
+        "enabled": true
+      },
+      "discount_code": {
+        "enabled": false,
+        "discountType": null,
+        "discountValue": null,
+        "expiration": {
+          "enabled": false,
+          "days": null
+        }
+      },
+      "manual_discount": {
+        "enabled": false,
+        "manualDiscount": null
+      }
+    },
+    //Sticky Discount Tier
+    "stickyDiscountBar": {
+      "enabled": false
+    },
+    //Sidebar Widget
+    "sidebarWidget": {
+      "enabled": false
+    },
+    //Trigger
+    "trigger": {
+      "type": "TIMER", // "TIMER" | "SCROLL" | "EXIT"
+      "timerOption": {
+        "delayType": "AFTER_DELAY", // "IMMEDIATE" | "AFTER_DELAY"
+        "delaySeconds": 3 // Only required if AFTER_DELAY
+      },
+      "scrollOption": {
+        "percentage": 30 // Only required if type is "SCROLL"
+      },
+      "exitOption": {
+        "enabled": true // Only required if type is "EXIT"
+      }
+    },
+    //Frequency
+    "frequency": {
+      "type": "ALWAYS", // "ALWAYS" | "LIMIT"
+      "limit": {
+        "count": null, // Required only if type is "LIMIT"
+        "per": null // "DAY" | "WEEK" | "MONTH" (only if type is "LIMIT")
+      }
+    },
+    //Page Rules
+    "page_rules": {
+  "type": "ANY", // "ANY" | "SPECIFIC"
+  "conditions": [
+    {
+      "match": "EQUALS", // EQUALS | DOES_NOT_EQUAL | CONTAINS | DOES_NOT_CONTAIN | IS_HOMEPAGE | IS_NOT_HOMEPAGE
+      "value": "/collections/sale" // Optional if IS_HOMEPAGE or IS_NOT_HOMEPAGE
+    }
+  ]
+},
+
+//Location Rule
+"location_rules": {
+  "type": "ANY", // "ANY" | "INCLUDE" | "EXCLUDE"
+  "countries": [] // array of ISO country codes (e.g., ["US", "IN", "GB"])
+},
+
+//Schedule Rule
+"schedule": {
+  "type": "ALL_TIME", // "ALL_TIME" | "TIME_RANGE"
+  "start": null,      // ISO 8601 datetime string, required if TIME_RANGE
+  "end": null         // ISO 8601 datetime string, optional
+}
+  },
+  "content": {},
+  "style": {}
+}
