@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://yet-sys-resulting-subaru.trycloudflare.com"
+application_url = "https://surprise-march-intake-hon.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://yet-sys-resulting-subaru.trycloudflare.com/auth/callback",
-  "https://yet-sys-resulting-subaru.trycloudflare.com/auth/shopify/callback",
-  "https://yet-sys-resulting-subaru.trycloudflare.com/api/auth/callback"
+  "https://surprise-march-intake-hon.trycloudflare.com/auth/callback",
+  "https://surprise-march-intake-hon.trycloudflare.com/auth/shopify/callback",
+  "https://surprise-march-intake-hon.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://yet-sys-resulting-subaru.trycloudflare.com/app/main"
+url = "https://surprise-march-intake-hon.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"
