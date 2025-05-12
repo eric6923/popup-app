@@ -24,6 +24,7 @@ export default function App() {
       <body>
         {/* Wrap the Outlet with AppBridgeProvider */}
         <AppBridgeProvider>
+          
           <Outlet />
         </AppBridgeProvider>
         <ScrollRestoration />

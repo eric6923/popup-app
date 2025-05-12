@@ -1,40 +1,142 @@
-import { useState } from "react"
-import { Page, Card, Text, Button, Icon, Modal, Badge, ButtonGroup, FullscreenBar } from "@shopify/polaris"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Page, Card, Text, Button, Icon, Modal, Badge, ButtonGroup, FullscreenBar, Banner } from "@shopify/polaris"
 import { MenuHorizontalIcon } from "@shopify/polaris-icons"
+import { json } from "@remix-run/node"
+import { useActionData, useLoaderData, useSubmit, useNavigate } from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
 import modal1 from "./assets/modal1.webp"
 import modal2 from "./assets/modal2.webp"
 import PopupEditor from "./app.customise"
+import { createPopup, getPopupsByStore, updatePopup, deletePopup } from "../services/popup.server"
+
+// Define the type for our popups
+type Popup = {
+  id: string
+  title: string
+  type: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  views?: number
+  subscribers?: number
+  conversionRate?: string
+  config: any
+}
+
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  // In a real app, you would get the storeId from the session or context
+  const storeId = "cmakq28vd0000rdu9uedh8vwq" // Replace with actual store ID retrieval
+
+  try {
+    const popups = await getPopupsByStore(storeId)
+
+    // Format the popups for the frontend
+    const formattedPopups = popups.map((popup) => ({
+      id: popup.id,
+      title: popup.config?.rules?.popupName || `${popup.type} popup`,
+      type: popup.type.toLowerCase(),
+      isActive: popup.isActive,
+      createdAt: new Date(popup.createdAt).toLocaleString(),
+      updatedAt: new Date(popup.updatedAt).toLocaleString(),
+      views: 0, // These would come from analytics in a real app
+      subscribers: 0,
+      conversionRate: "0%",
+      config: popup.config,
+    }))
+
+    return json({ popups: formattedPopups })
+  } catch (error) {
+    console.error("Error loading popups:", error)
+    return json({ popups: [], error: "Failed to load popups" })
+  }
+}
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData()
+  const intent = formData.get("intent")
+
+  // In a real app, you would get the storeId from the session or context
+  const storeId = "cmakq28vd0000rdu9uedh8vwq" // Replace with actual store ID retrieval
+
+  try {
+    if (intent === "create") {
+      const popupType = formData.get("type") as string
+      // Convert to the enum type expected by the backend
+      const type = popupType === "opt-in" ? "OPT_IN" : "SPIN_WHEEL"
+
+      const newPopup = await createPopup({
+        storeId,
+        type,
+      })
+
+      return json({
+        success: true,
+        message: "Popup created successfully",
+        popup: newPopup,
+        redirectTo: `/app/customize/${newPopup.id}`,
+      })
+    } else if (intent === "toggle") {
+      const id = formData.get("id") as string
+      const isActive = formData.get("isActive") === "true"
+
+      await updatePopup({
+        id,
+        isActive: !isActive,
+      })
+
+      return json({ success: true, message: "Popup status updated" })
+    } else if (intent === "delete") {
+      const id = formData.get("id") as string
+
+      await deletePopup(id)
+
+      return json({ success: true, message: "Popup deleted" })
+    }
+
+    return json({ success: false, message: "Unknown action" })
+  } catch (error) {
+    console.error("Error performing action:", error)
+    return json({ success: false, message: "An error occurred" })
+  }
+}
 
 export default function PopupLibraryPage() {
+  const loaderData = useLoaderData<{ popups: Popup[]; error?: string }>()
+  const actionData = useActionData<{ success: boolean; message: string; popup?: any; redirectTo?: string }>()
+  const submit = useSubmit()
+  const navigate = useNavigate()
+  // const transition = useTransition()
+
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [customizingPopupId, setCustomizingPopupId] = useState(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [customizingPopupId, setCustomizingPopupId] = useState<string | null>(null)
+  const [popups, setPopups] = useState<Popup[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  const popups = [
-    {
-      id: "1",
-      title: "Spin wheel popup",
-      type: "spin-wheel",
-      created: "Created: May 9, 2025 6:49 am",
-      saved: "Last saved: May 9, 2025 6:51 am",
-      views: 2,
-      subscribers: "-",
-      conversionRate: "0%",
-      active: false,
-    },
-    {
-      id: "2",
-      title: "Spin wheel popup",
-      type: "spin-wheel",
-      created: "Created: May 9, 2025 6:44 am",
-      saved: "Last saved: May 9, 2025 6:44 am",
-      views: 5,
-      subscribers: 1,
-      conversionRate: "20.00%",
-      active: false,
-    },
-  ]
+  // Initialize popups from loader data
+  useEffect(() => {
+    if (loaderData?.popups) {
+      setPopups(loaderData.popups)
+    }
+    if (loaderData?.error) {
+      setError(loaderData.error)
+    }
+  }, [loaderData])
+
+  // Handle redirect after successful popup creation
+  useEffect(() => {
+    if (actionData?.success && actionData?.redirectTo) {
+      navigate(actionData.redirectTo)
+    }
+  }, [actionData, navigate])
+
+  // Update loading state based on transition
+  // useEffect(() => {
+  //   setIsLoading(transition.state === "submitting")
+  // }, [transition])
 
   const templates = [
     {
@@ -49,7 +151,7 @@ export default function PopupLibraryPage() {
     },
   ]
 
-  const handleCustomize = (id) => {
+  const handleCustomize = (id: string) => {
     setCustomizingPopupId(id)
   }
 
@@ -67,14 +169,38 @@ export default function PopupLibraryPage() {
     setIsModalOpen(false)
   }
 
-  const handleSelectTemplate = (templateId) => {
+  const handleSelectTemplate = (templateId: string) => {
     setSelectedTemplate(templateId)
   }
 
   const handleCreatePopup = () => {
-    console.log(`Creating popup with template: ${selectedTemplate}`)
+    if (!selectedTemplate) return
+
+    const formData = new FormData()
+    formData.append("intent", "create")
+    formData.append("type", selectedTemplate)
+
+    submit(formData, { method: "post" })
     setIsModalOpen(false)
-    // Add your create popup logic here
+  }
+
+  const handleToggleActive = (popup: Popup) => {
+    const formData = new FormData()
+    formData.append("intent", "toggle")
+    formData.append("id", popup.id)
+    formData.append("isActive", String(popup.isActive))
+
+    submit(formData, { method: "post" })
+  }
+
+  const handleDeletePopup = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this popup?")) {
+      const formData = new FormData()
+      formData.append("intent", "delete")
+      formData.append("id", id)
+
+      submit(formData, { method: "post" })
+    }
   }
 
   const renderSpinWheelThumbnail = () => {
@@ -370,7 +496,7 @@ export default function PopupLibraryPage() {
           }}
         >
           <Button onClick={handleCloseModal}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreatePopup}>
+          <Button variant="primary" onClick={handleCreatePopup} loading={isLoading}>
             Create popup
           </Button>
         </div>
@@ -387,6 +513,18 @@ export default function PopupLibraryPage() {
         onAction: handleOpenModal,
       }}
     >
+      {error && (
+        <Banner status="critical">
+          <p>{error}</p>
+        </Banner>
+      )}
+
+      {actionData?.message && !actionData.redirectTo && (
+        <Banner status={actionData.success ? "success" : "critical"}>
+          <p>{actionData.message}</p>
+        </Banner>
+      )}
+
       <Card>
         <div style={{ padding: "0 16px" }}>
           <div style={{ padding: "16px 0" }}>
@@ -395,171 +533,181 @@ export default function PopupLibraryPage() {
             </Text>
           </div>
 
-          {popups.map((popup, index) => (
-            <div
-              key={popup.id}
-              style={{
-                borderTop: "1px solid #e1e3e5",
-                padding: "16px 0",
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-              }}
-            >
+          {popups.length === 0 ? (
+            <div style={{ padding: "32px 0", textAlign: "center" }}>
+              <Text as="p" variant="bodyMd">
+                No popups found. Create your first popup to get started.
+              </Text>
+            </div>
+          ) : (
+            popups.map((popup) => (
               <div
+                key={popup.id}
                 style={{
-                  width: "130px",
-                  height: "72px",
-                  border: "1px solid #e1e3e5",
-                  borderRadius: "4px",
-                  overflow: "hidden",
-                }}
-              >
-                {popup.type === "spin-wheel" ? renderSpinWheelThumbnail() : renderOptInThumbnail()}
-              </div>
-
-              <div
-                style={{
+                  borderTop: "1px solid #e1e3e5",
+                  padding: "16px 0",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                  flex: "1",
-                }}
-              >
-                <Text as="h3" fontWeight="medium">
-                  {popup.title}
-                </Text>
-                <Text as="p" variant="bodySm">
-                  {popup.created}
-                </Text>
-                <Text as="p" variant="bodySm">
-                  {popup.saved}
-                </Text>
-              </div>
-
-              <div
-                style={{
-                  width: "150px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "2px",
-                }}
-              >
-                <Text as="p" variant="bodyMd">
-                  Popup views
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  {popup.views}
-                </Text>
-              </div>
-
-              <div
-                style={{
-                  width: "150px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "2px",
-                }}
-              >
-                <Text as="p" variant="bodyMd">
-                  Subscribers
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  {popup.subscribers}
-                </Text>
-              </div>
-
-              <div
-                style={{
-                  width: "150px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "2px",
-                }}
-              >
-                <Text as="p" variant="bodyMd">
-                  Conversion rate
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  {popup.conversionRate}
-                </Text>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
                   alignItems: "center",
+                  gap: "16px",
                 }}
               >
-                <label
+                <div
                   style={{
-                    position: "relative",
-                    display: "inline-block",
-                    width: "36px",
-                    height: "20px",
+                    width: "130px",
+                    height: "72px",
+                    border: "1px solid #e1e3e5",
+                    borderRadius: "4px",
+                    overflow: "hidden",
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={popup.active}
-                    onChange={() => console.log(`Toggle ${popup.id}`)}
+                  {popup.type === "spin_wheel" || popup.type === "spin-wheel"
+                    ? renderSpinWheelThumbnail()
+                    : renderOptInThumbnail()}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                    flex: "1",
+                  }}
+                >
+                  <Text as="h3" fontWeight="medium">
+                    {popup.title}
+                  </Text>
+                  <Text as="p" variant="bodySm">
+                    Created: {popup.createdAt}
+                  </Text>
+                  <Text as="p" variant="bodySm">
+                    Last saved: {popup.updatedAt}
+                  </Text>
+                </div>
+
+                <div
+                  style={{
+                    width: "150px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                  }}
+                >
+                  <Text as="p" variant="bodyMd">
+                    Popup views
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    {popup.views || 0}
+                  </Text>
+                </div>
+
+                <div
+                  style={{
+                    width: "150px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                  }}
+                >
+                  <Text as="p" variant="bodyMd">
+                    Subscribers
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    {popup.subscribers || "-"}
+                  </Text>
+                </div>
+
+                <div
+                  style={{
+                    width: "150px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                  }}
+                >
+                  <Text as="p" variant="bodyMd">
+                    Conversion rate
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    {popup.conversionRate || "0%"}
+                  </Text>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <label
                     style={{
-                      opacity: 0,
-                      width: 0,
-                      height: 0,
-                    }}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      cursor: "pointer",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: popup.active ? "#3bcdac" : "#e1e3e5",
-                      borderRadius: "10px",
-                      transition: "0.3s",
+                      position: "relative",
+                      display: "inline-block",
+                      width: "36px",
+                      height: "20px",
                     }}
                   >
+                    <input
+                      type="checkbox"
+                      checked={popup.isActive}
+                      onChange={() => handleToggleActive(popup)}
+                      style={{
+                        opacity: 0,
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
                     <span
                       style={{
                         position: "absolute",
-                        content: '""',
-                        height: "16px",
-                        width: "16px",
-                        left: popup.active ? "17px" : "2px",
-                        bottom: "2px",
-                        backgroundColor: "white",
-                        borderRadius: "50%",
+                        cursor: "pointer",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: popup.isActive ? "#3bcdac" : "#e1e3e5",
+                        borderRadius: "10px",
                         transition: "0.3s",
                       }}
-                    ></span>
-                  </span>
-                </label>
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          content: '""',
+                          height: "16px",
+                          width: "16px",
+                          left: popup.isActive ? "17px" : "2px",
+                          bottom: "2px",
+                          backgroundColor: "white",
+                          borderRadius: "50%",
+                          transition: "0.3s",
+                        }}
+                      ></span>
+                    </span>
+                  </label>
 
-                <Button onClick={() => handleCustomize(popup.id)} variant="primary">
-                  Customize
-                </Button>
+                  <Button onClick={() => handleCustomize(popup.id)} variant="primary">
+                    Customize
+                  </Button>
 
-                <button
-                  onClick={() => console.log(`Options for ${popup.id}`)}
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Icon source={MenuHorizontalIcon} />
-                </button>
+                  <button
+                    onClick={() => handleDeletePopup(popup.id)}
+                    style={{
+                      backgroundColor: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon source={MenuHorizontalIcon} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </Card>
 
@@ -575,29 +723,33 @@ export default function PopupLibraryPage() {
             <FullscreenBar onAction={handleCloseCustomize}>
               <div
                 style={{
-                  display: 'flex',
+                  display: "flex",
                   flexGrow: 1,
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingLeft: '1rem',
-                  paddingRight: '1rem',
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
                 }}
               >
                 <Badge tone="info">Unpublished</Badge>
-                <div style={{marginLeft: '1rem', flexGrow: 1}}>
+                <div style={{ marginLeft: "1rem", flexGrow: 1 }}>
                   <Text variant="headingLg" as="p">
-                    Opt-in popup
+                    {popups.find((p) => p.id === customizingPopupId)?.title || "Popup Editor"}
                   </Text>
                 </div>
                 <ButtonGroup>
-                  <Button onClick={() => console.log('Need help clicked')}>Need help?</Button>
-                  <Button variant="primary" onClick={() => console.log('Preview clicked')}>
+                  <Button onClick={() => console.log("Need help clicked")}>Need help?</Button>
+                  <Button variant="primary" onClick={() => console.log("Preview clicked")}>
                     Preview this popup
                   </Button>
                 </ButtonGroup>
               </div>
             </FullscreenBar>
-            <PopupEditor popupId={customizingPopupId} onClose={handleCloseCustomize} />
+            <PopupEditor
+              popupId={customizingPopupId}
+              onClose={handleCloseCustomize}
+              popupData={popups.find((p) => p.id === customizingPopupId)}
+            />
           </div>
         </Modal>
       )}
