@@ -51,7 +51,7 @@ import {
     );
   
     // Row with label and edit button
-    const RowWithEdit = ({ label, checked, onChange }) => (
+    const RowWithEdit = ({ label, checked, onChange }:any) => (
       <div style={{ 
         display: "flex", 
         justifyContent: "space-between", 
@@ -256,6 +256,7 @@ import {
             </Text>
             <div style={{ marginTop: "8px" }}>
               <TextField
+              label=""
                 value={stickyDescription}
                 onChange={setStickyDescription}
                 autoComplete="off"
@@ -281,6 +282,70 @@ import {
                 onChange={setButtonText}
                 autoComplete="off"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Error text */}
+        <div style={{ marginTop: "16px" }}>
+          <Text variant="headingMd" as="h2">
+          Error text
+          </Text>
+  
+          {/* Button Text */}
+          <div style={{ marginTop: "16px" }}>
+          
+            <div style={{ marginTop: "8px" }}>
+              <BlockStack gap="400">
+              <TextField
+                label="Invalid first name"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Invalid last name"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Invalid email"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Invalid phone number"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Policy not checked"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Already subscribed"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Submit error"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              <TextField
+                label="Birthday error"
+                value={buttonText}
+                onChange={setButtonText}
+                autoComplete="off"
+              />
+              </BlockStack>
             </div>
           </div>
         </div>
