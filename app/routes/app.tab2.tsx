@@ -10,6 +10,10 @@ import {
     TextField,
   } from "@shopify/polaris";
   import { useState } from "react";
+  import {
+  LinkIcon,
+  ListBulletedIcon
+} from '@shopify/polaris-icons';
   
   function Tab2() {
     // Checkbox states
@@ -178,13 +182,15 @@ import {
                 marginBottom: "8px",
               }}
             >
-              <InlineStack gap="3">
-                <Button size="slim" monochrome>
+              <InlineStack gap="200">
+                <Button size="slim" >
                   B
                 </Button>
-                <Button size="slim" monochrome>
+                <Button size="slim">
                   I
                 </Button>
+                <Button icon={ListBulletedIcon}/>
+                <Button icon={LinkIcon}/>
               </InlineStack>
             </div>
             <Text as="p" variant="bodyMd">

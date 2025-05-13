@@ -7,50 +7,51 @@
     margin-bottom: 12px;
   }
 
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 21px;
-  }
-  
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 34px;
-  }
-  
-  .slider::before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-  }
-  
-  .toggle-switch input:checked + .slider {
-    background-color: black;
-  }
-  
-  .toggle-switch input:checked + .slider::before {
-    transform: translateX(22px);
-  }
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e1e3e5; /* match inactive bg */
+  transition: 0.3s;
+  border-radius: 10px; /* same as inline */
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2.3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: #000000;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(15px); /* From 2px to 17px */
+}
+
   
   .menu-button-wrapper:hover {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);

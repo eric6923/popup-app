@@ -52,11 +52,13 @@
     },
     //Page Rules
     "page_rules": {
-  "type": "ANY", // "ANY" | "SPECIFIC"
+  "type": "ANY", // or "SPECIFIC"
+  // Below fields only if type is "SPECIFIC"
+  "match_type": "ANY", // or "ALL"
   "conditions": [
     {
-      "match": "EQUALS", // EQUALS | DOES_NOT_EQUAL | CONTAINS | DOES_NOT_CONTAIN | IS_HOMEPAGE | IS_NOT_HOMEPAGE
-      "value": "/collections/sale" // Optional if IS_HOMEPAGE or IS_NOT_HOMEPAGE
+      "match": "EQUALS",
+      "value": "/app/popups"
     }
   ]
 },
@@ -74,6 +76,61 @@
   "end": null         // ISO 8601 datetime string, optional
 }
   },
-  "content": {},
-  "style": {}
+  "content": {
+    "Heading":"Get 10% OFF your order",
+    "Description":"Sign up and unlock your instant discount."
+  },
+  //Form Fields
+  "form": {
+    "fields": {
+      "name": false,
+      "email": true
+    },
+    //Actions
+    "actions1":{
+      "primary":true,
+      "secondary":true
+    },
+    //Footer Text
+    "footer":{
+      "footerText":"You are signing up to receive communication via email and can unsubscribe at any time."
+    },
+    //Success Status
+    "success":{
+      "heading":"Discount unlocked 🎉",
+      "description":"Thanks for subscribing. Copy your discount code and apply to your next order."
+    },
+    //Main Button
+    "actions2":{
+      "enabled":true
+    },
+    //Sticky Discount Bar
+    "stickydiscountbar":{
+      "description":"Don't forget to use your discount code"
+    },
+    //Sidebar Widget
+    "sidebarWidget":{
+      "btn-text":"Get 10% OFF"
+    },
+    //Error Texts
+    "errorTexts":{
+      "firstName":"Please enter your first name!",
+      "lastName":"Please enter your last name!",
+      "email":"Please enter your email address!",
+      "phoneNumber":"Please enter valid phone number!",
+      "policy":"Please check the policy!",
+      "alreadySubscribed":"You have already subscribed!",
+      "submitError":"Sorry, please try again later!",
+      "birthdayError":"Please enter valid birthday!"
+    }
+
+
+  },
+
+
+  "style": {
+    
+  }
 }
+
+//DATABASE_URL=postgresql://neondb_owner:npg_IJgZdRSO5ji9@ep-wandering-leaf-a16x2zuv-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require

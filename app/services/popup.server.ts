@@ -3,7 +3,7 @@ import { Type } from "@prisma/client";
 
 const defaultPopupConfig = {
   rules: {
-    popupName: "Test with backend",
+    popupName: "Opt-in popup",
     discount: {
       no_discount: { enabled: true },
       discount_code: {

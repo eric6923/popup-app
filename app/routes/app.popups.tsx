@@ -46,7 +46,7 @@ type Popup = {
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   // In a real app, you would get the storeId from the session or context
-  const storeId = "cmakq28vd0000rdu9uedh8vwq"; // Replace with actual store ID retrieval
+  const storeId = "cmagd0wb00000rdrik3j0l8bm"; // Replace with actual store ID retrieval
 
   try {
     const popups = await getPopupsByStore(storeId);
@@ -77,7 +77,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const intent = formData.get("intent");
 
   // In a real app, you would get the storeId from the session or context
-  const storeId = "cmakq28vd0000rdu9uedh8vwq"; // Replace with actual store ID retrieval
+  const storeId = "cmagd0wb00000rdrik3j0l8bm"; // Replace with actual store ID retrieval
 
   try {
     if (intent === "create") {
@@ -750,7 +750,7 @@ export default function PopupLibraryPage() {
                           right: 0,
                           bottom: 0,
                           backgroundColor: popup.isActive
-                            ? "#3bcdac"
+                            ? "#000000"
                             : "#e1e3e5",
                           borderRadius: "10px",
                           transition: "0.3s",
@@ -763,7 +763,7 @@ export default function PopupLibraryPage() {
                             height: "16px",
                             width: "16px",
                             left: popup.isActive ? "17px" : "2px",
-                            bottom: "2px",
+                            bottom: "2.3px",
                             backgroundColor: "white",
                             borderRadius: "50%",
                             transition: "0.3s",

@@ -1,7 +1,7 @@
 import { json, redirect } from "@remix-run/node"
 import { useLoaderData } from "@remix-run/react"
-import type { LoaderFunctionArgs } from "@remix-run/node"
-import { getPopupById } from "../services/popup.server"
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node"
+import { getPopupById, updatePopup } from "../services/popup.server"
 import PopupEditor from "./app.customise"
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
@@ -33,6 +33,53 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   } catch (error) {
     console.error("Error loading popup:", error)
     return redirect("/app/popups")
+  }
+}
+
+export const action = async ({ request, params }: ActionFunctionArgs) => {
+  const { id } = params
+
+  if (!id) {
+    return json({ success: false, message: "Popup ID is required" }, { status: 400 })
+  }
+
+  try {
+    const formData = await request.formData()
+    const configStr = formData.get("config") as string
+    const isActiveStr = formData.get("isActive") as string | null
+
+    if (!configStr) {
+      return json({ success: false, message: "Config data is required" }, { status: 400 })
+    }
+
+    // Parse the config JSON
+    const config = JSON.parse(configStr)
+
+    // Convert isActive string to boolean if provided
+    const isActive = isActiveStr ? isActiveStr === "true" : undefined
+
+    // Log the data being sent to the database for debugging
+    console.log("Updating popup with ID:", id)
+    console.log("Config:", JSON.stringify(config, null, 2))
+    console.log("isActive:", isActive)
+
+    // Update the popup using the service function
+    await updatePopup({
+      id,
+      config,
+      isActive,
+    })
+
+    return json({ success: true, message: "Popup updated successfully" })
+  } catch (error) {
+    console.error("Error updating popup:", error)
+    return json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to update popup",
+      },
+      { status: 500 },
+    )
   }
 }
 
