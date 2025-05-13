@@ -1,36 +1,55 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Page, Card, Text, Button, Icon, Modal, Badge, ButtonGroup, FullscreenBar, Banner } from "@shopify/polaris"
-import { MenuHorizontalIcon } from "@shopify/polaris-icons"
-import { json } from "@remix-run/node"
-import { useActionData, useLoaderData, useSubmit, useNavigate } from "@remix-run/react"
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
-import modal1 from "./assets/modal1.webp"
-import modal2 from "./assets/modal2.webp"
-import PopupEditor from "./app.customise"
-import { createPopup, getPopupsByStore, updatePopup, deletePopup } from "../services/popup.server"
+import { useState, useEffect, useCallback } from "react";
+import {
+  Page,
+  Card,
+  Text,
+  Button,
+  Modal,
+  Toast,
+  Popover,
+  ActionList,
+  Frame,
+} from "@shopify/polaris";
+import { MenuHorizontalIcon } from "@shopify/polaris-icons";
+import { json } from "@remix-run/node";
+import {
+  useActionData,
+  useLoaderData,
+  useSubmit,
+  useNavigate,
+} from "@remix-run/react";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import modal1 from "./assets/modal1.webp";
+import modal2 from "./assets/modal2.webp";
+import {
+  createPopup,
+  getPopupsByStore,
+  updatePopup,
+  deletePopup,
+} from "../services/popup.server";
 
 // Define the type for our popups
 type Popup = {
-  id: string
-  title: string
-  type: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  views?: number
-  subscribers?: number
-  conversionRate?: string
-  config: any
-}
+  id: string;
+  title: string;
+  type: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  views?: number;
+  subscribers?: number;
+  conversionRate?: string;
+  config: any;
+};
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   // In a real app, you would get the storeId from the session or context
-  const storeId = "cmakq28vd0000rdu9uedh8vwq" // Replace with actual store ID retrieval
+  const storeId = "cmakq28vd0000rdu9uedh8vwq"; // Replace with actual store ID retrieval
 
   try {
-    const popups = await getPopupsByStore(storeId)
+    const popups = await getPopupsByStore(storeId);
 
     // Format the popups for the frontend
     const formattedPopups = popups.map((popup) => ({
@@ -44,99 +63,110 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       subscribers: 0,
       conversionRate: "0%",
       config: popup.config,
-    }))
+    }));
 
-    return json({ popups: formattedPopups })
+    return json({ popups: formattedPopups });
   } catch (error) {
-    console.error("Error loading popups:", error)
-    return json({ popups: [], error: "Failed to load popups" })
+    console.error("Error loading popups:", error);
+    return json({ popups: [], error: "Failed to load popups" });
   }
-}
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData()
-  const intent = formData.get("intent")
+  const formData = await request.formData();
+  const intent = formData.get("intent");
 
   // In a real app, you would get the storeId from the session or context
-  const storeId = "cmakq28vd0000rdu9uedh8vwq" // Replace with actual store ID retrieval
+  const storeId = "cmakq28vd0000rdu9uedh8vwq"; // Replace with actual store ID retrieval
 
   try {
     if (intent === "create") {
-      const popupType = formData.get("type") as string
+      const popupType = formData.get("type") as string;
       // Convert to the enum type expected by the backend
-      const type = popupType === "opt-in" ? "OPT_IN" : "SPIN_WHEEL"
+      const type = popupType === "opt-in" ? "OPT_IN" : "SPIN_WHEEL";
 
       const newPopup = await createPopup({
         storeId,
         type,
-      })
+      });
 
       return json({
         success: true,
         message: "Popup created successfully",
         popup: newPopup,
         redirectTo: `/app/customize/${newPopup.id}`,
-      })
+      });
     } else if (intent === "toggle") {
-      const id = formData.get("id") as string
-      const isActive = formData.get("isActive") === "true"
+      const id = formData.get("id") as string;
+      const isActive = formData.get("isActive") === "true";
 
       await updatePopup({
         id,
         isActive: !isActive,
-      })
+      });
 
-      return json({ success: true, message: "Popup status updated" })
+      return json({ success: true, message: "Popup status updated" });
     } else if (intent === "delete") {
-      const id = formData.get("id") as string
+      const id = formData.get("id") as string;
 
-      await deletePopup(id)
+      await deletePopup(id);
 
-      return json({ success: true, message: "Popup deleted" })
+      return json({ success: true, message: "Popup deleted" });
     }
 
-    return json({ success: false, message: "Unknown action" })
+    return json({ success: false, message: "Unknown action" });
   } catch (error) {
-    console.error("Error performing action:", error)
-    return json({ success: false, message: "An error occurred" })
+    console.error("Error performing action:", error);
+    return json({ success: false, message: "An error occurred" });
   }
-}
+};
 
 export default function PopupLibraryPage() {
-  const loaderData = useLoaderData<{ popups: Popup[]; error?: string }>()
-  const actionData = useActionData<{ success: boolean; message: string; popup?: any; redirectTo?: string }>()
-  const submit = useSubmit()
-  const navigate = useNavigate()
-  // const transition = useTransition()
+  const loaderData = useLoaderData<{ popups: Popup[]; error?: string }>();
+  const actionData = useActionData<{
+    success: boolean;
+    message: string;
+    popup?: any;
+    redirectTo?: string;
+  }>();
+  const submit = useSubmit();
+  const navigate = useNavigate();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
-  const [customizingPopupId, setCustomizingPopupId] = useState<string | null>(null)
-  const [popups, setPopups] = useState<Popup[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [popups, setPopups] = useState<Popup[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [toastActive, setToastActive] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastError, setToastError] = useState(false);
+  const [popoverActive, setPopoverActive] = useState<string | null>(null);
+  const [deleteModalActive, setDeleteModalActive] = useState(false);
+  const [popupToDelete, setPopupToDelete] = useState<string | null>(null);
 
   // Initialize popups from loader data
   useEffect(() => {
     if (loaderData?.popups) {
-      setPopups(loaderData.popups)
+      setPopups(loaderData.popups);
     }
     if (loaderData?.error) {
-      setError(loaderData.error)
+      setError(loaderData.error);
+      setToastMessage(loaderData.error);
+      setToastError(true);
+      setToastActive(true);
     }
-  }, [loaderData])
+  }, [loaderData]);
 
   // Handle redirect after successful popup creation
   useEffect(() => {
     if (actionData?.success && actionData?.redirectTo) {
-      navigate(actionData.redirectTo)
+      navigate(actionData.redirectTo);
+    } else if (actionData?.message) {
+      setToastMessage(actionData.message);
+      setToastError(!actionData.success);
+      setToastActive(true);
     }
-  }, [actionData, navigate])
-
-  // Update loading state based on transition
-  // useEffect(() => {
-  //   setIsLoading(transition.state === "submitting")
-  // }, [transition])
+  }, [actionData, navigate]);
 
   const templates = [
     {
@@ -149,59 +179,50 @@ export default function PopupLibraryPage() {
       name: "Spin wheel popup",
       current: false,
     },
-  ]
+  ];
 
   const handleCustomize = (id: string) => {
-    setCustomizingPopupId(id)
-  }
-
-  const handleCloseCustomize = () => {
-    setCustomizingPopupId(null)
-  }
+    // Navigate directly to the customize page instead of opening a modal
+    navigate(`/app/customize/${id}`);
+  };
 
   const handleOpenModal = () => {
-    setIsModalOpen(true)
+    setIsModalOpen(true);
     // Default to first template
-    setSelectedTemplate(templates[0].id)
-  }
+    setSelectedTemplate(templates[0].id);
+  };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplate(templateId)
-  }
+    setSelectedTemplate(templateId);
+  };
 
   const handleCreatePopup = () => {
-    if (!selectedTemplate) return
+    if (!selectedTemplate) return;
 
-    const formData = new FormData()
-    formData.append("intent", "create")
-    formData.append("type", selectedTemplate)
+    const formData = new FormData();
+    formData.append("intent", "create");
+    formData.append("type", selectedTemplate);
 
-    submit(formData, { method: "post" })
-    setIsModalOpen(false)
-  }
+    submit(formData, { method: "post" });
+    setIsModalOpen(false);
+  };
 
   const handleToggleActive = (popup: Popup) => {
-    const formData = new FormData()
-    formData.append("intent", "toggle")
-    formData.append("id", popup.id)
-    formData.append("isActive", String(popup.isActive))
+    const formData = new FormData();
+    formData.append("intent", "toggle");
+    formData.append("id", popup.id);
+    formData.append("isActive", String(popup.isActive));
 
-    submit(formData, { method: "post" })
-  }
+    submit(formData, { method: "post" });
+  };
 
   const handleDeletePopup = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this popup?")) {
-      const formData = new FormData()
-      formData.append("intent", "delete")
-      formData.append("id", id)
-
-      submit(formData, { method: "post" })
-    }
-  }
+    openDeleteModal(id);
+  };
 
   const renderSpinWheelThumbnail = () => {
     return (
@@ -220,7 +241,14 @@ export default function PopupLibraryPage() {
         >
           <div style={{ width: "90%", height: "90%" }}>
             <svg viewBox="0 0 100 100" width="100%" height="100%">
-              <circle cx="50" cy="50" r="45" fill="#f4f6f8" stroke="#dfe3e8" strokeWidth="1" />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="#f4f6f8"
+                stroke="#dfe3e8"
+                strokeWidth="1"
+              />
               <path d="M50,5 L50,50 L80,20 Z" fill="#3bcdac" />
               <path d="M50,5 L50,50 L20,20 Z" fill="#69cf9c" />
               <path d="M95,50 L50,50 L80,20 Z" fill="#45d0b5" />
@@ -229,7 +257,14 @@ export default function PopupLibraryPage() {
               <path d="M50,95 L50,50 L20,80 Z" fill="#45d0b5" />
               <path d="M5,50 L50,50 L20,80 Z" fill="#3bcdac" />
               <path d="M5,50 L50,50 L20,20 Z" fill="#69cf9c" />
-              <circle cx="50" cy="50" r="8" fill="#ffffff" stroke="#dfe3e8" strokeWidth="1" />
+              <circle
+                cx="50"
+                cy="50"
+                r="8"
+                fill="#ffffff"
+                stroke="#dfe3e8"
+                strokeWidth="1"
+              />
             </svg>
           </div>
         </div>
@@ -284,8 +319,8 @@ export default function PopupLibraryPage() {
           ></div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const renderOptInThumbnail = () => {
     return (
@@ -343,8 +378,8 @@ export default function PopupLibraryPage() {
           ></div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   // Template selection modal content
   const renderModalContent = () => {
@@ -363,7 +398,10 @@ export default function PopupLibraryPage() {
             style={{
               width: "510px",
               cursor: "pointer",
-              border: selectedTemplate === "opt-in" ? "2px solid #008060" : "1px solid #e1e3e5",
+              border:
+                selectedTemplate === "opt-in"
+                  ? "2px solid #008060"
+                  : "1px solid #e1e3e5",
               borderRadius: "8px",
               overflow: "hidden",
             }}
@@ -427,7 +465,10 @@ export default function PopupLibraryPage() {
             style={{
               width: "510px",
               cursor: "pointer",
-              border: selectedTemplate === "spin-wheel" ? "2px solid #008060" : "1px solid #e1e3e5",
+              border:
+                selectedTemplate === "spin-wheel"
+                  ? "2px solid #008060"
+                  : "1px solid #e1e3e5",
               borderRadius: "8px",
               overflow: "hidden",
             }}
@@ -496,263 +537,331 @@ export default function PopupLibraryPage() {
           }}
         >
           <Button onClick={handleCloseModal}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreatePopup} loading={isLoading}>
+          <Button
+            variant="primary"
+            onClick={handleCreatePopup}
+            loading={isLoading}
+          >
             Create popup
           </Button>
         </div>
       </div>
-    )
-  }
+    );
+  };
+
+  const togglePopoverActive = useCallback(
+    (id: string | null) => {
+      setPopoverActive(popoverActive === id ? null : id);
+    },
+    [popoverActive],
+  );
+
+  const handleToastDismiss = useCallback(() => setToastActive(false), []);
+
+  const handlePreviewPopup = useCallback((id: string) => {
+    // Implement preview functionality
+    console.log("Preview popup:", id);
+    setPopoverActive(null);
+  }, []);
+
+  const handleRenamePopup = useCallback((id: string) => {
+    // Implement rename functionality
+    console.log("Rename popup:", id);
+    setPopoverActive(null);
+  }, []);
+
+  const handleDuplicatePopup = useCallback((id: string) => {
+    // Implement duplicate functionality
+    console.log("Duplicate popup:", id);
+    setPopoverActive(null);
+  }, []);
+
+  const openDeleteModal = useCallback((id: string) => {
+    setPopupToDelete(id);
+    setDeleteModalActive(true);
+    setPopoverActive(null);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalActive(false);
+    setPopupToDelete(null);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (popupToDelete) {
+      const formData = new FormData();
+      formData.append("intent", "delete");
+      formData.append("id", popupToDelete);
+
+      submit(formData, { method: "post" });
+      setDeleteModalActive(false);
+      setPopupToDelete(null);
+    }
+  }, [popupToDelete, submit]);
 
   return (
-    <Page
-      fullWidth
-      title="Popups"
-      primaryAction={{
-        content: "Create popup",
-        onAction: handleOpenModal,
-      }}
-    >
-      {error && (
-        <Banner status="critical">
-          <p>{error}</p>
-        </Banner>
-      )}
-
-      {actionData?.message && !actionData.redirectTo && (
-        <Banner status={actionData.success ? "success" : "critical"}>
-          <p>{actionData.message}</p>
-        </Banner>
-      )}
-
-      <Card>
-        <div style={{ padding: "0 16px" }}>
-          <div style={{ padding: "16px 0" }}>
-            <Text as="h2" fontWeight="semibold">
-              Popup library
-            </Text>
-          </div>
-
-          {popups.length === 0 ? (
-            <div style={{ padding: "32px 0", textAlign: "center" }}>
-              <Text as="p" variant="bodyMd">
-                No popups found. Create your first popup to get started.
+    <Frame>
+      <Page
+        fullWidth
+        title="Popups"
+        primaryAction={{
+          content: "Create popup",
+          onAction: handleOpenModal,
+        }}
+      >
+        <Card>
+          <div style={{ padding: "0 16px" }}>
+            <div style={{ padding: "16px 0" }}>
+              <Text as="h2" fontWeight="semibold">
+                Popup library
               </Text>
             </div>
-          ) : (
-            popups.map((popup) => (
-              <div
-                key={popup.id}
-                style={{
-                  borderTop: "1px solid #e1e3e5",
-                  padding: "16px 0",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "130px",
-                    height: "72px",
-                    border: "1px solid #e1e3e5",
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                  }}
-                >
-                  {popup.type === "spin_wheel" || popup.type === "spin-wheel"
-                    ? renderSpinWheelThumbnail()
-                    : renderOptInThumbnail()}
-                </div>
 
+            {popups.length === 0 ? (
+              <div style={{ padding: "32px 0", textAlign: "center" }}>
+                <Text as="p" variant="bodyMd">
+                  No popups found. Create your first popup to get started.
+                </Text>
+              </div>
+            ) : (
+              popups.map((popup) => (
                 <div
+                  key={popup.id}
                   style={{
+                    borderTop: "1px solid #e1e3e5",
+                    padding: "16px 0",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "4px",
-                    flex: "1",
-                  }}
-                >
-                  <Text as="h3" fontWeight="medium">
-                    {popup.title}
-                  </Text>
-                  <Text as="p" variant="bodySm">
-                    Created: {popup.createdAt}
-                  </Text>
-                  <Text as="p" variant="bodySm">
-                    Last saved: {popup.updatedAt}
-                  </Text>
-                </div>
-
-                <div
-                  style={{
-                    width: "150px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                  }}
-                >
-                  <Text as="p" variant="bodyMd">
-                    Popup views
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    {popup.views || 0}
-                  </Text>
-                </div>
-
-                <div
-                  style={{
-                    width: "150px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                  }}
-                >
-                  <Text as="p" variant="bodyMd">
-                    Subscribers
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    {popup.subscribers || "-"}
-                  </Text>
-                </div>
-
-                <div
-                  style={{
-                    width: "150px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                  }}
-                >
-                  <Text as="p" variant="bodyMd">
-                    Conversion rate
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    {popup.conversionRate || "0%"}
-                  </Text>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
                     alignItems: "center",
+                    gap: "16px",
                   }}
                 >
-                  <label
+                  <div
                     style={{
-                      position: "relative",
-                      display: "inline-block",
-                      width: "36px",
-                      height: "20px",
+                      width: "130px",
+                      height: "72px",
+                      border: "1px solid #e1e3e5",
+                      borderRadius: "4px",
+                      overflow: "hidden",
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={popup.isActive}
-                      onChange={() => handleToggleActive(popup)}
+                    {popup.type === "spin_wheel" || popup.type === "spin-wheel"
+                      ? renderSpinWheelThumbnail()
+                      : renderOptInThumbnail()}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                      flex: "1",
+                    }}
+                  >
+                    <Text as="h3" fontWeight="medium">
+                      {popup.title}
+                    </Text>
+                    <Text as="p" variant="bodySm">
+                      Created: {popup.createdAt}
+                    </Text>
+                    <Text as="p" variant="bodySm">
+                      Last saved: {popup.updatedAt}
+                    </Text>
+                  </div>
+
+                  <div
+                    style={{
+                      width: "150px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <Text as="p" variant="bodyMd">
+                      Popup views
+                    </Text>
+                    <Text as="p" variant="bodyMd">
+                      {popup.views || 0}
+                    </Text>
+                  </div>
+
+                  <div
+                    style={{
+                      width: "150px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <Text as="p" variant="bodyMd">
+                      Subscribers
+                    </Text>
+                    <Text as="p" variant="bodyMd">
+                      {popup.subscribers || "-"}
+                    </Text>
+                  </div>
+
+                  <div
+                    style={{
+                      width: "150px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <Text as="p" variant="bodyMd">
+                      Conversion rate
+                    </Text>
+                    <Text as="p" variant="bodyMd">
+                      {popup.conversionRate || "0%"}
+                    </Text>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <label
                       style={{
-                        opacity: 0,
-                        width: 0,
-                        height: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        position: "absolute",
-                        cursor: "pointer",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: popup.isActive ? "#3bcdac" : "#e1e3e5",
-                        borderRadius: "10px",
-                        transition: "0.3s",
+                        position: "relative",
+                        display: "inline-block",
+                        width: "36px",
+                        height: "20px",
                       }}
                     >
+                      <input
+                        type="checkbox"
+                        checked={popup.isActive}
+                        onChange={() => handleToggleActive(popup)}
+                        style={{
+                          opacity: 0,
+                          width: 0,
+                          height: 0,
+                        }}
+                      />
                       <span
                         style={{
                           position: "absolute",
-                          content: '""',
-                          height: "16px",
-                          width: "16px",
-                          left: popup.isActive ? "17px" : "2px",
-                          bottom: "2px",
-                          backgroundColor: "white",
-                          borderRadius: "50%",
+                          cursor: "pointer",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: popup.isActive
+                            ? "#3bcdac"
+                            : "#e1e3e5",
+                          borderRadius: "10px",
                           transition: "0.3s",
                         }}
-                      ></span>
-                    </span>
-                  </label>
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            content: '""',
+                            height: "16px",
+                            width: "16px",
+                            left: popup.isActive ? "17px" : "2px",
+                            bottom: "2px",
+                            backgroundColor: "white",
+                            borderRadius: "50%",
+                            transition: "0.3s",
+                          }}
+                        ></span>
+                      </span>
+                    </label>
 
-                  <Button onClick={() => handleCustomize(popup.id)} variant="primary">
-                    Customize
-                  </Button>
+                    <Button
+                      onClick={() => handleCustomize(popup.id)}
+                      variant="primary"
+                    >
+                      Customize
+                    </Button>
 
-                  <button
-                    onClick={() => handleDeletePopup(popup.id)}
-                    style={{
-                      backgroundColor: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Icon source={MenuHorizontalIcon} />
-                  </button>
+                    <Popover
+                      active={popoverActive === popup.id}
+                      activator={
+                        <div className="menu-button-wrapper">
+                          <Button
+                            variant="plain"
+                            onClick={() => togglePopoverActive(popup.id)}
+                            icon={MenuHorizontalIcon}
+                          />
+                        </div>
+                      }
+                      onClose={() => togglePopoverActive(null)}
+                    >
+                      <ActionList
+                        actionRole="menuitem"
+                        items={[
+                          {
+                            content: "Preview",
+                            onAction: () => handlePreviewPopup(popup.id),
+                          },
+                          {
+                            content: "Rename",
+                            onAction: () => handleRenamePopup(popup.id),
+                          },
+                          {
+                            content: "Duplicate",
+                            onAction: () => handleDuplicatePopup(popup.id),
+                          },
+                          {
+                            content: "Delete",
+                            destructive: true,
+                            onAction: () => handleDeletePopup(popup.id),
+                          },
+                        ]}
+                      />
+                    </Popover>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </Card>
-
-      {/* Template Selection Modal */}
-      <Modal open={isModalOpen} onClose={handleCloseModal} title="Select template" size="large">
-        {renderModalContent()}
-      </Modal>
-
-      {/* Customization Modal */}
-      {customizingPopupId && (
-        <Modal open={true} onClose={handleCloseCustomize} title="" size="fullScreen" noScroll>
-          <div style={{ height: "100vh" }}>
-            <FullscreenBar onAction={handleCloseCustomize}>
-              <div
-                style={{
-                  display: "flex",
-                  flexGrow: 1,
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingLeft: "1rem",
-                  paddingRight: "1rem",
-                }}
-              >
-                <Badge tone="info">Unpublished</Badge>
-                <div style={{ marginLeft: "1rem", flexGrow: 1 }}>
-                  <Text variant="headingLg" as="p">
-                    {popups.find((p) => p.id === customizingPopupId)?.title || "Popup Editor"}
-                  </Text>
-                </div>
-                <ButtonGroup>
-                  <Button onClick={() => console.log("Need help clicked")}>Need help?</Button>
-                  <Button variant="primary" onClick={() => console.log("Preview clicked")}>
-                    Preview this popup
-                  </Button>
-                </ButtonGroup>
-              </div>
-            </FullscreenBar>
-            <PopupEditor
-              popupId={customizingPopupId}
-              onClose={handleCloseCustomize}
-              popupData={popups.find((p) => p.id === customizingPopupId)}
-            />
+              ))
+            )}
           </div>
+        </Card>
+
+        {/* Template Selection Modal */}
+        <Modal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          title="Select template"
+          size="large"
+        >
+          {renderModalContent()}
         </Modal>
-      )}
-    </Page>
-  )
+
+        <Modal
+          open={deleteModalActive}
+          onClose={closeDeleteModal}
+          title="Delete popup"
+          primaryAction={{
+            content: "Delete",
+            destructive: true,
+            onAction: confirmDelete,
+          }}
+          secondaryActions={[
+            {
+              content: "Cancel",
+              onAction: closeDeleteModal,
+            },
+          ]}
+        >
+          <Modal.Section>
+            <Text as="p">This action cannot be undone.</Text>
+          </Modal.Section>
+        </Modal>
+
+        {toastActive && (
+          <Toast
+            content={toastMessage}
+            error={toastError}
+            onDismiss={handleToastDismiss}
+            duration={4500}
+          />
+        )}
+      </Page>
+    </Frame>
+  );
 }

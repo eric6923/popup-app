@@ -1,5 +1,5 @@
 import { json, redirect } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import { useLoaderData } from "@remix-run/react"
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { getPopupById } from "../services/popup.server"
 import PopupEditor from "./app.customise"
@@ -38,15 +38,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function CustomizePopupPage() {
   const { popup } = useLoaderData<{ popup: any }>()
-  const navigate = useNavigate()
 
-  const handleClose = () => {
-    navigate("/app/popups")
-  }
-
-  return (
-    <div style={{ height: "100vh" }}>
-      <PopupEditor popupId={popup.id} onClose={handleClose} popupData={popup} />
-    </div>
-  )
+  return <PopupEditor popupId={popup.id} popupData={popup} />
 }

@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://submission-diego-joyce-pasta.trycloudflare.com"
+application_url = "https://patio-hydrocodone-runner-port.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://submission-diego-joyce-pasta.trycloudflare.com/auth/callback",
-  "https://submission-diego-joyce-pasta.trycloudflare.com/auth/shopify/callback",
-  "https://submission-diego-joyce-pasta.trycloudflare.com/api/auth/callback"
+  "https://patio-hydrocodone-runner-port.trycloudflare.com/auth/callback",
+  "https://patio-hydrocodone-runner-port.trycloudflare.com/auth/shopify/callback",
+  "https://patio-hydrocodone-runner-port.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://submission-diego-joyce-pasta.trycloudflare.com/app/main"
+url = "https://patio-hydrocodone-runner-port.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"
