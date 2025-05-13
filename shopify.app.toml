@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://stranger-pt-sixth-avi.trycloudflare.com"
+application_url = "https://panels-edition-ladder-lap.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://stranger-pt-sixth-avi.trycloudflare.com/auth/callback",
-  "https://stranger-pt-sixth-avi.trycloudflare.com/auth/shopify/callback",
-  "https://stranger-pt-sixth-avi.trycloudflare.com/api/auth/callback"
+  "https://panels-edition-ladder-lap.trycloudflare.com/auth/callback",
+  "https://panels-edition-ladder-lap.trycloudflare.com/auth/shopify/callback",
+  "https://panels-edition-ladder-lap.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://stranger-pt-sixth-avi.trycloudflare.com/app/main"
+url = "https://panels-edition-ladder-lap.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"

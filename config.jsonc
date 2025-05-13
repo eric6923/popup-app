@@ -76,16 +76,18 @@
   "end": null         // ISO 8601 datetime string, optional
 }
   },
+
+  //Tab 2 Config
   "content": {
     "Heading":"Get 10% OFF your order",
-    "Description":"Sign up and unlock your instant discount."
-  },
-  //Form Fields
-  "form": {
+    "Description":"Sign up and unlock your instant discount.",
+    //Form Fields
+    "form": {
     "fields": {
       "name": false,
       "email": true
-    },
+    }
+  },
     //Actions
     "actions1":{
       "primary":true,
@@ -123,8 +125,6 @@
       "submitError":"Sorry, please try again later!",
       "birthdayError":"Please enter valid birthday!"
     }
-
-
   },
 
 

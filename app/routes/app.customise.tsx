@@ -813,7 +813,7 @@ export default function PopupEditor({ popupId, popupData }: { popupId: string; p
 
               {selectedTab === 1 && (
                 <div style={{ padding: "20px" }}>
-                  <Tab2 />
+                  <Tab2 config={config} setConfig={setConfig} setHasUnsavedChanges={setHasUnsavedChanges} />
                 </div>
               )}
 

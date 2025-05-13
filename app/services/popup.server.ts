@@ -42,7 +42,46 @@ const defaultPopupConfig = {
       end: null
     }
   },
-  content: {},
+  content: {
+    Heading: "Get 10% OFF your order",
+    Description: "Sign up and unlock your instant discount.",
+    form: {
+      fields: {
+        name: false,
+        email: true
+      }
+    },
+    actions1: {
+      primary: true,
+      secondary: true
+    },
+    footer: {
+      footerText: "You are signing up to receive communication via email and can unsubscribe at any time."
+    },
+    success: {
+      heading: "Discount unlocked 🎉",
+      description: "Thanks for subscribing. Copy your discount code and apply to your next order."
+    },
+    actions2: {
+      enabled: true
+    },
+    stickydiscountbar: {
+      description: "Don't forget to use your discount code"
+    },
+    sidebarWidget: {
+      "btn-text": "Get 10% OFF"
+    },
+    errorTexts: {
+      firstName: "Please enter your first name!",
+      lastName: "Please enter your last name!",
+      email: "Please enter your email address!",
+      phoneNumber: "Please enter valid phone number!",
+      policy: "Please check the policy!",
+      alreadySubscribed: "You have already subscribed!",
+      submitError: "Sorry, please try again later!",
+      birthdayError: "Please enter valid birthday!"
+    }
+  },
   style: {}
 };
 
