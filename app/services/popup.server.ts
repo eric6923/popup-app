@@ -28,6 +28,7 @@ const defaultPopupConfig = {
     },
     page_rules: {
       type: "ANY",
+      match_type: "ANY",
       conditions: [
         { match: "EQUALS", value: "/collections/sale" }
       ]
@@ -82,7 +83,49 @@ const defaultPopupConfig = {
       birthdayError: "Please enter valid birthday!"
     }
   },
-  style: {}
+  style: {
+    logo: {
+      url: "",
+      width: "40"
+    },
+    display: {
+      size: "Standard",
+      alignment: "Left",
+      cornor_Radius: "Large"
+    },
+    layout: "Left",
+    image: "",
+    colors: {
+      popup: {
+        backgroud: "FFFFFF"
+      },
+      text: {
+        heading: "121212",
+        description: "454545",
+        input: "121212",
+        consent: "454545",
+        error: "D72C0D",
+        footerText: "454545",
+        label: "121212"
+      },
+      primaryButton: {
+        background: "121212",
+        text: "FFFFFF"
+      },
+      secondaryButton: {
+        text: "334FB4"
+      },
+      stickyDiscountBar: {
+        background: "F3F3F3",
+        text: "121212"
+      },
+      sidebarWidget: {
+        background: "333333",
+        text: "FFFFFF"
+      }
+    },
+    customCss: ""
+  }
 };
 
 // ✅ CREATE

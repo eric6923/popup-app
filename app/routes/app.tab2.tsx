@@ -204,52 +204,52 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
     updateConfig("actions2", "enabled", checked)
   }
 
-  const handleStickyDescriptionChange = (value) => {
+  const handleStickyDescriptionChange = (value: any) => {
     setStickyDescription(value)
     updateConfig("stickydiscountbar", "description", value)
   }
 
-  const handleButtonTextChange = (value) => {
+  const handleButtonTextChange = (value: any) => {
     setButtonText(value)
     updateConfig("sidebarWidget", "btn-text", value)
   }
 
-  const handleFirstNameErrorChange = (value) => {
+  const handleFirstNameErrorChange = (value: any) => {
     setFirstNameError(value)
     updateConfig("errorTexts", "firstName", value)
   }
 
-  const handleLastNameErrorChange = (value) => {
+  const handleLastNameErrorChange = (value: any) => {
     setLastNameError(value)
     updateConfig("errorTexts", "lastName", value)
   }
 
-  const handleEmailErrorChange = (value) => {
+  const handleEmailErrorChange = (value: any) => {
     setEmailError(value)
     updateConfig("errorTexts", "email", value)
   }
 
-  const handlePhoneErrorChange = (value) => {
+  const handlePhoneErrorChange = (value: any) => {
     setPhoneError(value)
     updateConfig("errorTexts", "phoneNumber", value)
   }
 
-  const handlePolicyErrorChange = (value) => {
+  const handlePolicyErrorChange = (value: any) => {
     setPolicyError(value)
     updateConfig("errorTexts", "policy", value)
   }
 
-  const handleSubscribedErrorChange = (value) => {
+  const handleSubscribedErrorChange = (value: any) => {
     setSubscribedError(value)
     updateConfig("errorTexts", "alreadySubscribed", value)
   }
 
-  const handleSubmitErrorChange = (value) => {
+  const handleSubmitErrorChange = (value: any) => {
     setSubmitError(value)
     updateConfig("errorTexts", "submitError", value)
   }
 
-  const handleBirthdayErrorChange = (value) => {
+  const handleBirthdayErrorChange = (value: any) => {
     setBirthdayError(value)
     updateConfig("errorTexts", "birthdayError", value)
   }
@@ -280,27 +280,29 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
   )
 
   // TipTap toolbar buttons
-  const MenuBar = ({ editor }) => {
+  const MenuBar = ({ editor }:any) => {
     if (!editor) {
       return null
     }
 
     return (
       <InlineStack gap="200">
-        <Button size="slim" pressed={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
-          <TextBoldIcon size={16} />
+        <Button size="slim" pressed={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}
+          icon={TextBoldIcon}>
+      
         </Button>
         <Button
           size="slim"
           pressed={editor.isActive("italic")}
           onClick={() => editor.chain().focus().toggleItalic().run()}
+          icon={TextItalicIcon}
         >
-          <TextItalicIcon size={16} />
+        
         </Button>
         <Button
           pressed={editor.isActive("bulletList")}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          icon={<ListBulletedIcon size={16} />}
+          icon={<ListBulletedIcon />}
         />
         <Button
           pressed={editor.isActive("link")}
@@ -312,7 +314,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
               editor.chain().focus().unsetLink().run()
             }
           }}
-          icon={<LinkIcon size={16} />}
+          icon={<LinkIcon/>}
         />
       </InlineStack>
     )
@@ -327,7 +329,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
       {/* Heading Input */}
       <div style={{ marginTop: "8px" }}>
-        <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+        <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
           Heading
         </Text>
         <div style={{ marginTop: "8px" }}>
@@ -337,7 +339,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
       {/* Description Input */}
       <div style={{ marginTop: "8px" }}>
-        <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+        <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
           Description
         </Text>
         <div style={{ marginTop: "8px" }}>
@@ -353,7 +355,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
       {/* Form Fields */}
       <div style={{ marginTop: "16px" }}>
-        <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+        <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
           Form
         </Text>
         <BlockStack gap="100">
@@ -371,7 +373,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
       {/* Actions */}
       <div style={{ marginTop: "16px" }}>
-        <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+        <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
           Actions
         </Text>
         <BlockStack gap="100">
@@ -387,7 +389,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
       {/* Footer Text with TipTap */}
       <div style={{ marginTop: "16px" }}>
-        <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+        <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
           Footer text
         </Text>
         <div
@@ -419,21 +421,22 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
 
         {/* Success Heading */}
         <div style={{ marginTop: "16px" }}>
-          <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+          <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
             Heading
           </Text>
           <div style={{ marginTop: "8px" }}>
-            <TextField value={successHeading} onChange={handleSuccessHeadingChange} autoComplete="off" />
+            <TextField label="" value={successHeading} onChange={handleSuccessHeadingChange} autoComplete="off" />
           </div>
         </div>
 
         {/* Success Description */}
         <div style={{ marginTop: "16px" }}>
-          <Text as="p" fontWeight="medium" color="subdued" variant="bodyMd">
+          <Text as="p" fontWeight="medium" tone="subdued" variant="bodyMd">
             Description
           </Text>
           <div style={{ marginTop: "8px" }}>
             <TextField
+            label=""
               value={successDescription}
               onChange={handleSuccessDescriptionChange}
               multiline={3}

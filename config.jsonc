@@ -1,4 +1,5 @@
 {
+  //Tab 1 Config
   "rules": {
     "popupName": "Opt-in popup",
     //Discount
@@ -127,9 +128,58 @@
     }
   },
 
-
+ //Tab 3 Config
   "style": {
-    
+    "logo":{
+      "url":"",
+      "width":"40"
+    },
+
+    "display":{
+      "size":"Standard",
+      "alignment":"Left",
+      "cornor_Radius":"Large"
+    },
+
+    "layout":"Left",
+
+    "image":"",
+    //Everything inside colors will be color value
+    "colors":{
+      "popup":{
+        "backgroud":"FFFFFF"
+      },
+      
+      "text":{
+        "heading":"121212",
+        "description":"454545",
+        "input":"121212",
+        "consent":"454545",
+        "error":"D72C0D",
+        "footerText":"454545",
+        "label":"121212"
+      },
+
+      "primaryButton":{
+        "background":"121212",
+        "text":"FFFFFF"
+      },
+
+      "secondaryButton":{
+        "text":"334FB4"
+      },
+
+      "stickyDiscountBar":{
+        "background":"F3F3F3",
+        "text":"121212"
+      },
+
+      "sidebarWidget":{
+        "background":"333333",
+        "text":"FFFFFF"
+      }
+    },
+    "customCss":""
   }
 }
 
