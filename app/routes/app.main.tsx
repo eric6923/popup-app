@@ -1,4 +1,3 @@
-// app/main.tsx
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { prisma } from "../lib/prisma.server";
