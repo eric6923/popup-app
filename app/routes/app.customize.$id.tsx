@@ -1,8 +1,11 @@
+
 import { json, redirect } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react"
+import { useLoaderData, useNavigate } from "@remix-run/react"
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node"
+import { Modal, useAppBridge } from "@shopify/app-bridge-react"
 import { getPopupById, updatePopup } from "../services/popup.server"
 import PopupEditor from "./app.customise"
+import { useEffect } from "react"
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { id } = params
@@ -85,6 +88,29 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
 export default function CustomizePopupPage() {
   const { popup } = useLoaderData<{ popup: any }>()
+  const navigate = useNavigate()
+  const shopify = useAppBridge()
 
-  return <PopupEditor popupId={popup.id} popupData={popup} />
+  // When this route is loaded directly, we'll show the modal
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      try {
+        shopify.modal.show("customization-modal")
+      } catch (error) {
+        console.error("Failed to show modal:", error)
+      }
+    }, 50)
+
+    return () => clearTimeout(timeout)
+  }, [shopify.modal])
+
+  const handleClose = () => {
+    navigate("/app/popups")
+  }
+
+  return (
+    <Modal id="customization-modal" variant="max" onHide={handleClose}>
+      <PopupEditor popupId={popup.id} popupData={popup} onClose={handleClose} />
+    </Modal>
+  )
 }
