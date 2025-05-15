@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://graduate-holland-memphis-miniature.trycloudflare.com"
+application_url = "https://replacement-eden-provincial-controllers.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://graduate-holland-memphis-miniature.trycloudflare.com/auth/callback",
-  "https://graduate-holland-memphis-miniature.trycloudflare.com/auth/shopify/callback",
-  "https://graduate-holland-memphis-miniature.trycloudflare.com/api/auth/callback"
+  "https://replacement-eden-provincial-controllers.trycloudflare.com/auth/callback",
+  "https://replacement-eden-provincial-controllers.trycloudflare.com/auth/shopify/callback",
+  "https://replacement-eden-provincial-controllers.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://graduate-holland-memphis-miniature.trycloudflare.com/app/main"
+url = "https://replacement-eden-provincial-controllers.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"

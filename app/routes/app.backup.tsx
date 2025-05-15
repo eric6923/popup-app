@@ -85,7 +85,7 @@ export default function PopupEditor({ popupId, onClose }:any = {}) {
   // State for form fields
   const [popupName, setPopupName] = useState(popupData.title);
   const [discountOption, setDiscountOption] = useState("no-discount");
-  const [discountType, setDiscountType] = useState("percentage-off");
+  const [discountType, setDiscountType] = useState("percentage");
   const [discountValue, setDiscountValue] = useState("10");
   const [setExpiration, setSetExpiration] = useState(false);
   const [expirationDays, setExpirationDays] = useState("30");
@@ -195,7 +195,7 @@ export default function PopupEditor({ popupId, onClose }:any = {}) {
   ];
 
   const discountTypes = [
-    { label: "Percentage off", value: "percentage-off" },
+    { label: "Percentage off", value: "percentage" },
     { label: "Fixed amount off", value: "fixed-amount" },
     { label: "Free shipping", value: "free-shipping" },
   ];
