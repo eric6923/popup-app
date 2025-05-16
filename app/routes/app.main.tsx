@@ -196,13 +196,11 @@ export const action: ActionFunction = async ({ request }) => {
         valueType = rawDiscountType;
       }
       
-      // Format discount value appropriately
+      // Format discount value appropriately - remove any existing negative sign first
       let discountValue = rawDiscountValue.toString().replace(/^-/, '');
       
-      // For Shopify API: percentage needs negative sign, fixed_amount doesn't
-      if (valueType === "percentage") {
-        discountValue = `-${discountValue}`;
-      }
+      // For Shopify API: BOTH percentage and fixed_amount need negative sign
+      discountValue = `-${discountValue}`;
       
       console.log("Formatted for Shopify:", { valueType, discountValue });
       

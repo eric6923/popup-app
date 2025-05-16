@@ -320,7 +320,19 @@ function setupStickyDiscountBar(content, style, discountCode = null) {
     background-color: ${colors.background}; color: ${colors.text}; 
     padding: 12px 16px; z-index: 9997; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
       <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 500;">${content?.stickydiscountbar?.description || "Don't forget to use your discount code"}</span>
+        <span style="font-weight: 500;">
+          ${(() => {
+            const discountType = window.popupConfig?.rules?.discount?.discountType || 
+                                window.popupConfig?.rules?.discount?.discount_code?.discountType || 
+                                "percentage";
+            const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
+                                 window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
+                                 "10";
+            
+            const discountText = discountType === "fixed" ? `$${discountValue} OFF` : `${discountValue}% OFF`;
+            return content?.stickydiscountbar?.description || `Don't forget to use your ${discountText} discount code`;
+          })()}
+        </span>
         ${
           discountCode
             ? `
@@ -446,7 +458,17 @@ function setupSidebarWidget(content, style) {
     background-color: ${colors.background}; color: ${colors.text}; 
     padding: 16px 8px; border-radius: 0 4px 4px 0; cursor: pointer; z-index: 9997; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
       <div style="writing-mode: vertical-rl; transform: rotate(180deg); text-orientation: mixed; white-space: nowrap; font-size: 14px; font-weight: 500; letter-spacing: 1px;">
-        ${content?.sidebarWidget?.["btn-text"] || "Get 10% OFF"}
+        ${(() => {
+          const discountType = window.popupConfig?.rules?.discount?.discountType || 
+                              window.popupConfig?.rules?.discount?.discount_code?.discountType || 
+                              "percentage";
+          const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
+                               window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
+                               "10";
+          
+          const defaultText = discountType === "fixed" ? `Get $${discountValue} OFF` : `Get ${discountValue}% OFF`;
+          return content?.sidebarWidget?.["btn-text"] || defaultText;
+        })()}
       </div>
     </div>
   `
@@ -529,10 +551,18 @@ function renderPopup(content, style, rules) {
   const discountCodeEnabled = rules?.discount?.discount_code?.enabled === true
   const manualDiscountEnabled = rules?.discount?.manual_discount?.enabled === true
 
-  // Determine button text based on discount settings
+  // Determine button text based on discount settings and type
   let buttonText = "Subscribe"
+  let discountType = rules?.discount?.discountType || rules?.discount?.discount_code?.discountType || "percentage"
+  let discountValue = rules?.discount?.discountValue || rules?.discount?.discount_code?.discountValue || "10"
+  
   if (discountCodeEnabled || manualDiscountEnabled) {
-    buttonText = content?.actions1?.primaryButtonText || "Claim discount"
+    // Customize button text based on discount type
+    if (discountType === "fixed") {
+      buttonText = content?.actions1?.primaryButtonText || `Claim discount`
+    } else {
+      buttonText = content?.actions1?.primaryButtonText || `Claim discount`
+    }
   } else {
     buttonText = content?.actions1?.primaryButtonText || "Subscribe"
   }
@@ -829,14 +859,25 @@ function renderPopup(content, style, rules) {
         }
       }
 
-      // Determine success message based on whether discount was created
+      // Get discount type and value from config
+      const discountType = window.popupConfig?.rules?.discount?.discountType || 
+                          window.popupConfig?.rules?.discount?.discount_code?.discountType || 
+                          "percentage";
+      const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
+                           window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
+                           "10";
+      
+      // Format discount text based on type
+      const discountText = discountType === "fixed" ? `$${discountValue}` : `${discountValue}%`;
+      
+      // Determine success message based on whether discount was created and its type
       const successHeading = hasDiscount
-        ? content?.success?.heading || "Discount unlocked 🎉"
+        ? content?.success?.heading || `${discountText} OFF unlocked 🎉`
         : content?.success?.noDiscountHeading || "Thank you for subscribing! 🎉"
 
       const successDescription = hasDiscount
         ? content?.success?.description ||
-          "Thanks for subscribing. Copy your discount code and apply to your next order."
+          `Thanks for subscribing. Copy your ${discountText} OFF discount code and apply to your next order.`
         : content?.success?.noDiscountDescription || "You have been successfully subscribed to our newsletter."
 
       popupContent.innerHTML = `
