@@ -196,7 +196,7 @@ export default function PopupEditor({ popupId, onClose }:any = {}) {
 
   const discountTypes = [
     { label: "Percentage off", value: "percentage" },
-    { label: "Fixed amount off", value: "fixed-amount" },
+    { label: "Fixed amount off", value: "fixed" },
     { label: "Free shipping", value: "free-shipping" },
   ];
 

@@ -1,4 +1,6 @@
-import { useNavigate, useParams, useSubmit } from "@remix-run/react";
+"use client"
+
+import { useNavigate, useParams, useSubmit } from "@remix-run/react"
 import {
   Button,
   Checkbox,
@@ -18,191 +20,168 @@ import {
   Tag,
   ContextualSaveBar,
   LegacyStack,
-} from "@shopify/polaris";
-import {
-  QuestionCircleIcon,
-  ViewIcon,
-  ExitIcon,
-  DeleteIcon,
-  ClockIcon,
-  CalendarIcon,
-} from "@shopify/polaris-icons";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Tab2 from "./app.tab2";
-import Tab3 from "./app.tab3";
+} from "@shopify/polaris"
+import { QuestionCircleIcon, ViewIcon, ExitIcon, DeleteIcon, ClockIcon, CalendarIcon } from "@shopify/polaris-icons"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import Tab2 from "./app.tab2"
+import Tab3 from "./app.tab3"
 
 interface PopupData {
-  id: string;
-  title: string;
-  type: string;
-  isActive: boolean;
-  config: any;
+  id: string
+  title: string
+  type: string
+  isActive: boolean
+  config: any
 }
 
 export default function PopupEditor({
   popupId,
   popupData,
 }: {
-  popupId: string;
-  popupData?: PopupData;
+  popupId: string
+  popupData?: PopupData
 }) {
-  const navigate = useNavigate();
-  const submit = useSubmit();
-  const params = useParams();
+  const navigate = useNavigate()
+  const submit = useSubmit()
+  const params = useParams()
 
   // If popupId is not provided via props, get it from URL params
-  const id = popupId || params.id;
+  const id = popupId || params.id
 
   // State for tabs
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(0)
 
   // State for form fields
-  const [popupName, setPopupName] = useState(popupData?.title || "");
-  const [discountOption, setDiscountOption] = useState("no-discount");
-  const [discountType, setDiscountType] = useState("percentage");
-  const [discountValue, setDiscountValue] = useState("10");
-  const [setExpiration, setSetExpiration] = useState(false);
-  const [expirationDays, setExpirationDays] = useState("30");
-  const [manualDiscountCode, setManualDiscountCode] = useState("");
-  const [manualDiscountError, setManualDiscountError] = useState(false);
-  const [showStickyBar, setShowStickyBar] = useState(false);
-  const [isPublished, setIsPublished] = useState(popupData?.isActive || false);
-  const [config, setConfig] = useState<any>(popupData?.config || null);
+  const [popupName, setPopupName] = useState(popupData?.title || "")
+  const [discountOption, setDiscountOption] = useState("no-discount")
+  const [discountType, setDiscountType] = useState("percentage")
+  const [discountValue, setDiscountValue] = useState("10")
+  const [setExpiration, setSetExpiration] = useState(false)
+  const [expirationDays, setExpirationDays] = useState("30")
+  const [manualDiscountCode, setManualDiscountCode] = useState("")
+  const [manualDiscountError, setManualDiscountError] = useState(false)
+  const [showStickyBar, setShowStickyBar] = useState(false)
+  const [isPublished, setIsPublished] = useState(popupData?.isActive || false)
+  const [config, setConfig] = useState<any>(popupData?.config || null)
 
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   // State for device preview
-  const [selectedDevice, setSelectedDevice] = useState("desktop");
+  const [selectedDevice, setSelectedDevice] = useState("desktop")
 
   // Trigger options states
-  const [triggerOption, setTriggerOption] = useState("timer");
-  const [delayTime, setDelayTime] = useState("Immediately");
-  const [scrollPercentage, setScrollPercentage] = useState("50");
+  const [triggerOption, setTriggerOption] = useState("timer")
+  const [delayTime, setDelayTime] = useState("Immediately")
+  const [scrollPercentage, setScrollPercentage] = useState("50")
 
   // Frequency options states
-  const [frequencyOption, setFrequencyOption] = useState("limit");
-  const [frequencyLimit, setFrequencyLimit] = useState("2");
-  const [frequencyPeriod, setFrequencyPeriod] = useState("Day");
+  const [frequencyOption, setFrequencyOption] = useState("limit")
+  const [frequencyLimit, setFrequencyLimit] = useState("2")
+  const [frequencyPeriod, setFrequencyPeriod] = useState("Day")
 
   // Page rules states
-  const [pageRuleOption, setPageRuleOption] = useState("specific");
-  const [matchOption, setMatchOption] = useState("any");
-  const [pageCondition, setPageCondition] = useState("Equals");
-  const [pagePath, setPagePath] = useState("");
+  const [pageRuleOption, setPageRuleOption] = useState("specific")
+  const [matchOption, setMatchOption] = useState("any")
+  const [pageCondition, setPageCondition] = useState("Equals")
+  const [pagePath, setPagePath] = useState("")
 
   // Country selection data
-  const [locationRuleOption, setLocationRuleOption] = useState("any");
+  const [locationRuleOption, setLocationRuleOption] = useState("any")
 
   // State for country selection
-  const [selectedCountries, setSelectedCountries] = useState([]);
-  const [excludedCountries, setExcludedCountries] = useState([]);
-  const [countryInputValue, setCountryInputValue] = useState("");
-  const [countryPopoverActive, setCountryPopoverActive] = useState(false);
-  const [selectedCountryOption, setSelectedCountryOption] = useState<
-    string | null
-  >(null);
+  const [selectedCountries, setSelectedCountries] = useState([])
+  const [excludedCountries, setExcludedCountries] = useState([])
+  const [countryInputValue, setCountryInputValue] = useState("")
+  const [countryPopoverActive, setCountryPopoverActive] = useState(false)
+  const [selectedCountryOption, setSelectedCountryOption] = useState<string | null>(null)
 
-  const [scheduleOption, setScheduleOption] = useState("all-time");
-  const [startDate, setStartDate] = useState("2025-05-11");
-  const [endDate, setEndDate] = useState("2025-05-11");
-  const [startTime, setStartTime] = useState("20:44");
-  const [endTime, setEndTime] = useState("20:44");
-  const [hasEndDate, setHasEndDate] = useState(true);
+  const [scheduleOption, setScheduleOption] = useState("all-time")
+  const [startDate, setStartDate] = useState("2025-05-11")
+  const [endDate, setEndDate] = useState("2025-05-11")
+  const [startTime, setStartTime] = useState("20:44")
+  const [endTime, setEndTime] = useState("20:44")
+  const [hasEndDate, setHasEndDate] = useState(true)
 
   // Initialize form values from popup data
   useEffect(() => {
     if (popupData?.config) {
-      setConfig(popupData.config);
+      setConfig(popupData.config)
 
       // Set form values from config if they exist
-      const rules = popupData.config.rules || {};
+      const rules = popupData.config.rules || {}
 
       // Popup name
-      if (rules.popupName) setPopupName(rules.popupName);
+      if (rules.popupName) setPopupName(rules.popupName)
 
       // Discount settings
       if (rules.discount) {
         if (rules.discount.no_discount?.enabled) {
-          setDiscountOption("no-discount");
+          setDiscountOption("no-discount")
         } else if (rules.discount.discount_code?.enabled) {
-          setDiscountOption("discount-code");
+          setDiscountOption("discount-code")
           if (rules.discount.discount_code.discountType) {
-            setDiscountType(rules.discount.discount_code.discountType);
+            setDiscountType(rules.discount.discount_code.discountType)
           }
           if (rules.discount.discount_code.discountValue) {
-            setDiscountValue(
-              rules.discount.discount_code.discountValue.toString(),
-            );
+            setDiscountValue(rules.discount.discount_code.discountValue.toString())
           }
           if (rules.discount.discount_code.expiration?.enabled) {
-            setSetExpiration(true);
+            setSetExpiration(true)
             if (rules.discount.discount_code.expiration.days) {
-              setExpirationDays(
-                rules.discount.discount_code.expiration.days.toString(),
-              );
+              setExpirationDays(rules.discount.discount_code.expiration.days.toString())
             }
           }
         } else if (rules.discount.manual_discount?.enabled) {
-          setDiscountOption("manual-discount");
+          setDiscountOption("manual-discount")
           if (rules.discount.manual_discount.manualDiscount) {
-            setManualDiscountCode(
-              rules.discount.manual_discount.manualDiscount,
-            );
+            setManualDiscountCode(rules.discount.manual_discount.manualDiscount)
           }
         }
       }
 
       // Sticky bar and sidebar widget
       if (rules.stickyDiscountBar?.enabled) {
-        setShowStickyBar(true);
+        setShowStickyBar(true)
       }
 
       // Trigger settings
       if (rules.trigger?.type) {
-        setTriggerOption(rules.trigger.type.toLowerCase());
+        setTriggerOption(rules.trigger.type.toLowerCase())
 
         if (rules.trigger.type === "TIMER" && rules.trigger.timerOption) {
           if (rules.trigger.timerOption.delayType === "IMMEDIATELY") {
-            setDelayTime("Immediately");
+            setDelayTime("Immediately")
           } else if (rules.trigger.timerOption.delaySeconds) {
-            setDelayTime(`${rules.trigger.timerOption.delaySeconds} seconds`);
+            setDelayTime(`${rules.trigger.timerOption.delaySeconds} seconds`)
           }
-        } else if (
-          rules.trigger.type === "SCROLL" &&
-          rules.trigger.scrollOption?.percentage
-        ) {
-          setScrollPercentage(rules.trigger.scrollOption.percentage.toString());
+        } else if (rules.trigger.type === "SCROLL" && rules.trigger.scrollOption?.percentage) {
+          setScrollPercentage(rules.trigger.scrollOption.percentage.toString())
         }
       }
 
       // Frequency settings
       if (rules.frequency?.type) {
-        setFrequencyOption(
-          rules.frequency.type === "ALWAYS" ? "every" : "limit",
-        );
+        setFrequencyOption(rules.frequency.type === "ALWAYS" ? "every" : "limit")
         if (rules.frequency.type === "LIMIT" && rules.frequency.limit) {
           if (rules.frequency.limit.count) {
-            setFrequencyLimit(rules.frequency.limit.count.toString());
+            setFrequencyLimit(rules.frequency.limit.count.toString())
           }
           if (rules.frequency.limit.per) {
-            setFrequencyPeriod(rules.frequency.limit.per.toLowerCase());
+            setFrequencyPeriod(rules.frequency.limit.per.toLowerCase())
           }
         }
       }
 
       // Page rules
       if (rules.page_rules?.type) {
-        setPageRuleOption(rules.page_rules.type === "ANY" ? "any" : "specific");
-        if (
-          rules.page_rules.type === "SPECIFIC" &&
-          rules.page_rules.conditions?.length > 0
-        ) {
-          const condition = rules.page_rules.conditions[0];
+        setPageRuleOption(rules.page_rules.type === "ANY" ? "any" : "specific")
+        if (rules.page_rules.type === "SPECIFIC" && rules.page_rules.conditions?.length > 0) {
+          const condition = rules.page_rules.conditions[0]
           if (condition.match) {
-            setPageCondition(condition.match.replace("_", " ").toLowerCase());
+            setPageCondition(condition.match.replace("_", " ").toLowerCase())
           }
           if (condition.value) {
-            setPagePath(condition.value);
+            setPagePath(condition.value)
           }
         }
       }
@@ -210,43 +189,41 @@ export default function PopupEditor({
       // Location rules
       if (rules.location_rules?.type) {
         if (rules.location_rules.type === "ANY") {
-          setLocationRuleOption("any");
+          setLocationRuleOption("any")
         } else if (rules.location_rules.type === "INCLUDE") {
-          setLocationRuleOption("specific");
+          setLocationRuleOption("specific")
           if (rules.location_rules.countries?.length > 0) {
-            setSelectedCountries(rules.location_rules.countries);
+            setSelectedCountries(rules.location_rules.countries)
           }
         } else if (rules.location_rules.type === "EXCLUDE") {
-          setLocationRuleOption("exclude");
+          setLocationRuleOption("exclude")
           if (rules.location_rules.countries?.length > 0) {
-            setExcludedCountries(rules.location_rules.countries);
+            setExcludedCountries(rules.location_rules.countries)
           }
         }
       }
 
       // Schedule rules
       if (rules.schedule?.type) {
-        setScheduleOption(
-          rules.schedule.type === "ALL_TIME" ? "all-time" : "time-period",
-        );
+        setScheduleOption(rules.schedule.type === "ALL_TIME" ? "all-time" : "time-period")
         if (rules.schedule.type === "TIME_RANGE") {
           if (rules.schedule.start) {
-            const startDateTime = new Date(rules.schedule.start);
-            setStartDate(startDateTime.toISOString().split("T")[0]);
-            setStartTime(startDateTime.toTimeString().substring(0, 5));
+            const startDateTime = new Date(rules.schedule.start)
+            setStartDate(startDateTime.toISOString().split("T")[0])
+            setStartTime(startDateTime.toTimeString().substring(0, 5))
           }
           if (rules.schedule.end) {
-            const endDateTime = new Date(rules.schedule.end);
-            setEndDate(endDateTime.toISOString().split("T")[0]);
-            setEndTime(endDateTime.toTimeString().substring(0, 5));
-            setHasEndDate(true);
+            const endDateTime = new Date(rules.schedule.end)
+            setEndDate(endDateTime.toISOString().split("T")[0])
+            setEndTime(endDateTime.toTimeString().substring(0, 5))
+            setHasEndDate(true)
           } else {
-            setHasEndDate(false);
+            setHasEndDate(false)
           }
         }
       }
     }
-  }, [popupData]);
+  }, [popupData])
 
   // Delay options
   const delayOptions = [
@@ -255,14 +232,14 @@ export default function PopupEditor({
     { label: "10 seconds", value: "10 seconds" },
     { label: "15 seconds", value: "15 seconds" },
     { label: "30 seconds", value: "30 seconds" },
-  ];
+  ]
 
   // Period options
   const periodOptions = [
     { label: "Day", value: "Day" },
     { label: "Week", value: "Week" },
     { label: "Month", value: "Month" },
-  ];
+  ]
 
   // Page condition options
   const pageConditionOptions = [
@@ -270,47 +247,47 @@ export default function PopupEditor({
     { label: "Contains", value: "Contains" },
     { label: "Starts with", value: "Starts with" },
     { label: "Ends with", value: "Ends with" },
-  ];
+  ]
 
   // Handle popup name change
   const handlePopupNameChange = useCallback((newValue) => {
-    setPopupName(newValue);
-    setHasUnsavedChanges(true);
-  }, []);
+    setPopupName(newValue)
+    setHasUnsavedChanges(true)
+  }, [])
 
   // Handle tab change
   const handleTabChange = useCallback((selectedTabIndex) => {
-    setSelectedTab(selectedTabIndex);
-  }, []);
+    setSelectedTab(selectedTabIndex)
+  }, [])
 
   // Handle manual discount code change
   const handleManualDiscountChange = useCallback((value) => {
-    setManualDiscountCode(value);
-    setManualDiscountError(value.trim() === "");
-    setHasUnsavedChanges(true);
-  }, []);
+    setManualDiscountCode(value)
+    setManualDiscountError(value.trim() === "")
+    setHasUnsavedChanges(true)
+  }, [])
 
   // Handle expiration days change
   const handleExpirationDaysChange = useCallback((value) => {
-    setExpirationDays(value);
-    setHasUnsavedChanges(true);
-  }, []);
+    setExpirationDays(value)
+    setHasUnsavedChanges(true)
+  }, [])
 
   // Set manual discount error when switching to manual mode
   useEffect(() => {
     if (discountOption === "manual-discount") {
-      setManualDiscountError(manualDiscountCode.trim() === "");
+      setManualDiscountError(manualDiscountCode.trim() === "")
     }
-  }, [discountOption, manualDiscountCode]);
+  }, [discountOption, manualDiscountCode])
 
   // Handle back button click
   const handleBackClick = useCallback(() => {
-    navigate("/app/popups");
-  }, [navigate]);
+    navigate("/app/popups")
+  }, [navigate])
 
   // Handle save changes
   const handleSave = useCallback(() => {
-    if (!config) return;
+    if (!config) return
 
     // Update config with current form values
     const updatedConfig = {
@@ -324,39 +301,29 @@ export default function PopupEditor({
           },
           discount_code: {
             enabled: discountOption === "discount-code",
-            discountType:
-              discountOption === "discount-code" ? discountType : null,
-            discountValue:
-              discountOption === "discount-code" ? discountValue : null,
+            discountType: discountOption === "discount-code" ? discountType : null,
+            discountValue: discountOption === "discount-code" ? discountValue : null,
             expiration: {
               enabled: discountOption === "discount-code" && setExpiration,
-              days:
-                discountOption === "discount-code" && setExpiration
-                  ? Number(expirationDays)
-                  : null,
+              days: discountOption === "discount-code" && setExpiration ? Number(expirationDays) : null,
             },
           },
           manual_discount: {
             enabled: discountOption === "manual-discount",
-            manualDiscount:
-              discountOption === "manual-discount" ? manualDiscountCode : null,
+            manualDiscount: discountOption === "manual-discount" ? manualDiscountCode : null,
           },
         },
         stickyDiscountBar: {
           enabled: showStickyBar,
         },
         sidebarWidget: {
-          enabled: showStickyBar, // This should probably be a separate state
+          enabled: config?.rules?.sidebarWidget?.enabled === true,
         },
         trigger: {
           type: triggerOption.toUpperCase(),
           timerOption: {
-            delayType:
-              delayTime === "Immediately" ? "IMMEDIATELY" : "AFTER_DELAY",
-            delaySeconds:
-              delayTime === "Immediately"
-                ? 0
-                : Number.parseInt(delayTime.split(" ")[0], 10),
+            delayType: delayTime === "Immediately" ? "IMMEDIATELY" : "AFTER_DELAY",
+            delaySeconds: delayTime === "Immediately" ? 0 : Number.parseInt(delayTime.split(" ")[0], 10),
           },
           scrollOption: {
             percentage: Number.parseInt(scrollPercentage, 10),
@@ -368,14 +335,8 @@ export default function PopupEditor({
         frequency: {
           type: frequencyOption === "every" ? "ALWAYS" : "LIMIT",
           limit: {
-            count:
-              frequencyOption === "limit"
-                ? Number.parseInt(frequencyLimit, 10)
-                : null,
-            per:
-              frequencyOption === "limit"
-                ? frequencyPeriod.toUpperCase()
-                : null,
+            count: frequencyOption === "limit" ? Number.parseInt(frequencyLimit, 10) : null,
+            per: frequencyOption === "limit" ? frequencyPeriod.toUpperCase() : null,
           },
         },
         page_rules: {
@@ -391,12 +352,7 @@ export default function PopupEditor({
               : config.rules?.page_rules?.conditions || [],
         },
         location_rules: {
-          type:
-            locationRuleOption === "any"
-              ? "ANY"
-              : locationRuleOption === "specific"
-                ? "INCLUDE"
-                : "EXCLUDE",
+          type: locationRuleOption === "any" ? "ANY" : locationRuleOption === "specific" ? "INCLUDE" : "EXCLUDE",
           countries:
             locationRuleOption === "any"
               ? []
@@ -406,25 +362,19 @@ export default function PopupEditor({
         },
         schedule: {
           type: scheduleOption === "all-time" ? "ALL_TIME" : "TIME_RANGE",
-          start:
-            scheduleOption === "time-period"
-              ? `${startDate}T${startTime}:00`
-              : null,
-          end:
-            scheduleOption === "time-period" && hasEndDate
-              ? `${endDate}T${endTime}:00`
-              : null,
+          start: scheduleOption === "time-period" ? `${startDate}T${startTime}:00` : null,
+          end: scheduleOption === "time-period" && hasEndDate ? `${endDate}T${endTime}:00` : null,
         },
       },
-    };
+    }
 
-    const formData = new FormData();
-    formData.append("id", id);
-    formData.append("config", JSON.stringify(updatedConfig));
-    formData.append("isActive", isPublished.toString());
+    const formData = new FormData()
+    formData.append("id", id)
+    formData.append("config", JSON.stringify(updatedConfig))
+    formData.append("isActive", isPublished.toString())
 
-    submit(formData, { method: "post" });
-    setHasUnsavedChanges(false);
+    submit(formData, { method: "post" })
+    setHasUnsavedChanges(false)
   }, [
     config,
     id,
@@ -457,7 +407,7 @@ export default function PopupEditor({
     endTime,
     hasEndDate,
     isPublished,
-  ]);
+  ])
 
   // Configuration tabs
   const tabs = [
@@ -473,46 +423,46 @@ export default function PopupEditor({
       id: "style",
       content: "Style",
     },
-  ];
+  ]
 
   const discountTypes = [
     { label: "Percentage off", value: "percentage" },
-    { label: "Fixed amount off", value: "fixed-amount" },
+    { label: "Fixed amount off", value: "fixed" },
     { label: "Free shipping", value: "free-shipping" },
-  ];
+  ]
 
   const previewTabs = [
     { id: "start", content: "Start status" },
     { id: "success", content: "Success status" },
     { id: "sticky", content: "Sticky discount bar" },
     { id: "sidebar", content: "Sidebar widget" },
-  ];
+  ]
 
   // Add a new state to track the selected preview tab
-  const [selectedPreviewTab, setSelectedPreviewTab] = useState(0);
+  const [selectedPreviewTab, setSelectedPreviewTab] = useState(0)
 
   // Add a handler for preview tab changes
   const handlePreviewTabChange = useCallback((selectedTabIndex) => {
-    setSelectedPreviewTab(selectedTabIndex);
-  }, []);
+    setSelectedPreviewTab(selectedTabIndex)
+  }, [])
 
   // Add these handlers
   const handleStartDateChange = useCallback((value) => {
-    setStartDate(value);
-    setHasUnsavedChanges(true);
-  }, []);
+    setStartDate(value)
+    setHasUnsavedChanges(true)
+  }, [])
   const handleEndDateChange = useCallback((value) => {
-    setEndDate(value);
-    setHasUnsavedChanges(true);
-  }, []);
+    setEndDate(value)
+    setHasUnsavedChanges(true)
+  }, [])
   const handleStartTimeChange = useCallback((value) => {
-    setStartTime(value);
-    setHasUnsavedChanges(true);
-  }, []);
+    setStartTime(value)
+    setHasUnsavedChanges(true)
+  }, [])
   const handleEndTimeChange = useCallback((value) => {
-    setEndTime(value);
-    setHasUnsavedChanges(true);
-  }, []);
+    setEndTime(value)
+    setHasUnsavedChanges(true)
+  }, [])
 
   // Filter countries based on input
   const allCountries = useMemo(
@@ -530,167 +480,160 @@ export default function PopupEditor({
       // Add more countries as needed
     ],
     [],
-  );
+  )
 
   // Filter countries based on input
   const countryOptions = useMemo(() => {
-    return allCountries.filter((country) =>
-      country.label.toLowerCase().includes(countryInputValue.toLowerCase()),
-    );
-  }, [allCountries, countryInputValue]);
+    return allCountries.filter((country) => country.label.toLowerCase().includes(countryInputValue.toLowerCase()))
+  }, [allCountries, countryInputValue])
 
   // Toggle popover
   const toggleCountryPopover = useCallback(() => {
-    setCountryPopoverActive((active) => !active);
-  }, []);
+    setCountryPopoverActive((active) => !active)
+  }, [])
 
   // Handle input change
   const handleCountryInputChange = useCallback((value) => {
-    setCountryInputValue(value);
-  }, []);
+    setCountryInputValue(value)
+  }, [])
 
   // Handle country selection
   const handleCountrySelect = useCallback(
     (value) => {
-      const isExcludeMode = locationRuleOption === "exclude";
-      const targetArray = isExcludeMode ? excludedCountries : selectedCountries;
+      const isExcludeMode = locationRuleOption === "exclude"
+      const targetArray = isExcludeMode ? excludedCountries : selectedCountries
 
       // Check if the country is already selected
       if (!targetArray.includes(value)) {
         if (isExcludeMode) {
-          setExcludedCountries([...targetArray, value]);
+          setExcludedCountries([...targetArray, value])
         } else {
-          setSelectedCountries([...targetArray, value]);
+          setSelectedCountries([...targetArray, value])
         }
       }
 
       // Clear the input and close the popover
-      setCountryInputValue("");
-      setSelectedCountryOption(null);
-      setHasUnsavedChanges(true);
+      setCountryInputValue("")
+      setSelectedCountryOption(null)
+      setHasUnsavedChanges(true)
     },
     [locationRuleOption, excludedCountries, selectedCountries],
-  );
+  )
 
   // Handle country removal
   const handleCountryRemove = useCallback(
     (countryToRemove) => {
-      const isExcludeMode = locationRuleOption === "exclude";
+      const isExcludeMode = locationRuleOption === "exclude"
       if (isExcludeMode) {
-        setExcludedCountries((prev) =>
-          prev.filter((country) => country !== countryToRemove),
-        );
+        setExcludedCountries((prev) => prev.filter((country) => country !== countryToRemove))
       } else {
-        setSelectedCountries((prev) =>
-          prev.filter((country) => country !== countryToRemove),
-        );
+        setSelectedCountries((prev) => prev.filter((country) => country !== countryToRemove))
       }
-      setHasUnsavedChanges(true);
+      setHasUnsavedChanges(true)
     },
     [locationRuleOption],
-  );
+  )
 
   // Clear input when changing location rule option
   const handleLocationRuleChange = useCallback((value) => {
-    setLocationRuleOption(value);
-    setCountryInputValue("");
-    setCountryPopoverActive(false);
-    setHasUnsavedChanges(true);
-  }, []);
+    setLocationRuleOption(value)
+    setCountryInputValue("")
+    setCountryPopoverActive(false)
+    setHasUnsavedChanges(true)
+  }, [])
 
   // Get the current active countries based on mode
-  const activeCountries =
-    locationRuleOption === "exclude" ? excludedCountries : selectedCountries;
+  const activeCountries = locationRuleOption === "exclude" ? excludedCountries : selectedCountries
 
   // Add these handlers with change tracking
   const handleTriggerOptionChange = (value) => {
-    setTriggerOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setTriggerOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleDelayTimeChange = (value) => {
-    setDelayTime(value);
-    setHasUnsavedChanges(true);
-  };
+    setDelayTime(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleFrequencyOptionChange = (value) => {
-    setFrequencyOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setFrequencyOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleFrequencyLimitChange = (value) => {
-    setFrequencyLimit(value);
-    setHasUnsavedChanges(true);
-  };
+    setFrequencyLimit(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleFrequencyPeriodChange = (value) => {
-    setFrequencyPeriod(value);
-    setHasUnsavedChanges(true);
-  };
+    setFrequencyPeriod(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handlePageRuleOptionChange = (value) => {
-    setPageRuleOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setPageRuleOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleMatchOptionChange = (value) => {
-    setMatchOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setMatchOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handlePageConditionChange = (value) => {
-    setPageCondition(value);
-    setHasUnsavedChanges(true);
-  };
+    setPageCondition(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handlePagePathChange = (value) => {
-    setPagePath(value);
-    setHasUnsavedChanges(true);
-  };
+    setPagePath(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleScheduleOptionChange = (value) => {
-    setScheduleOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setScheduleOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleShowStickyBarChange = (value) => {
-    setShowStickyBar(value);
-    setHasUnsavedChanges(true);
-  };
+    setShowStickyBar(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handlePublishChange = (value) => {
-    setIsPublished(value);
-    setHasUnsavedChanges(true);
-  };
+    setIsPublished(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleDiscountOptionChange = (value) => {
-    setDiscountOption(value);
-    setHasUnsavedChanges(true);
-  };
+    setDiscountOption(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleDiscountTypeChange = (value) => {
-    setDiscountType(value);
-    setHasUnsavedChanges(true);
-  };
+    setDiscountType(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleDiscountValueChange = (value) => {
-    setDiscountValue(value);
-    setHasUnsavedChanges(true);
-  };
+    setDiscountValue(value)
+    setHasUnsavedChanges(true)
+  }
 
   const handleSetExpirationChange = (value) => {
-    setSetExpiration(value);
-    setHasUnsavedChanges(true);
-  };
+    setSetExpiration(value)
+    setHasUnsavedChanges(true)
+  }
 
   // Get country label from value
   const getCountryLabel = useCallback(
     (countryValue) => {
-      const country = allCountries.find((c) => c.value === countryValue);
-      return country ? country.label : countryValue;
+      const country = allCountries.find((c) => c.value === countryValue)
+      return country ? country.label : countryValue
     },
     [allCountries],
-  );
+  )
 
   // Render tags for selected countries
   const renderCountryTags = useCallback(
@@ -703,10 +646,10 @@ export default function PopupEditor({
             </Tag>
           ))}
         </LegacyStack>
-      );
+      )
     },
     [getCountryLabel, handleCountryRemove],
-  );
+  )
 
   return (
     <Frame>
@@ -722,25 +665,22 @@ export default function PopupEditor({
             onAction: () => {
               // Reset form to original values
               if (popupData?.config) {
-                setConfig(popupData.config);
-                const rules = popupData.config.rules || {};
-                if (rules.popupName) setPopupName(rules.popupName);
-                if (rules.trigger?.type)
-                  setTriggerOption(rules.trigger.type.toLowerCase());
+                setConfig(popupData.config)
+                const rules = popupData.config.rules || {}
+                if (rules.popupName) setPopupName(rules.popupName)
+                if (rules.trigger?.type) setTriggerOption(rules.trigger.type.toLowerCase())
                 if (rules.trigger?.timerOption?.delayType) {
                   setDelayTime(
                     rules.trigger.timerOption.delayType === "IMMEDIATELY"
                       ? "Immediately"
                       : `${rules.trigger.timerOption.delaySeconds || 5} seconds`,
-                  );
+                  )
                 }
                 if (rules.frequency?.type) {
-                  setFrequencyOption(
-                    rules.frequency.type === "ALWAYS" ? "every" : "limit",
-                  );
+                  setFrequencyOption(rules.frequency.type === "ALWAYS" ? "every" : "limit")
                 }
               }
-              setHasUnsavedChanges(false);
+              setHasUnsavedChanges(false)
             },
           }}
         />
@@ -770,12 +710,7 @@ export default function PopupEditor({
           }}
         >
           <InlineStack align="start" gap="200">
-            <Button
-              icon={ExitIcon}
-              onClick={handleBackClick}
-              variant="plain"
-              accessibilityLabel="Back"
-            >
+            <Button icon={ExitIcon} onClick={handleBackClick} variant="plain" accessibilityLabel="Back">
               Back
             </Button>
 
@@ -818,11 +753,7 @@ export default function PopupEditor({
           >
             {/* Tabs with white background */}
             <div style={{ backgroundColor: "white" }}>
-              <Tabs
-                tabs={tabs}
-                selected={selectedTab}
-                onSelect={handleTabChange}
-              />
+              <Tabs tabs={tabs} fitted selected={selectedTab} onSelect={handleTabChange} />
             </div>
 
             <div
@@ -870,7 +801,7 @@ export default function PopupEditor({
                               type="checkbox"
                               checked={isPublished}
                               onChange={() => {
-                                handlePublishChange(!isPublished);
+                                handlePublishChange(!isPublished)
                               }}
                             />
                             <span className="slider"></span>
@@ -897,21 +828,13 @@ export default function PopupEditor({
 
               {selectedTab === 1 && (
                 <div style={{ padding: "20px" }}>
-                  <Tab2
-                    config={config}
-                    setConfig={setConfig}
-                    setHasUnsavedChanges={setHasUnsavedChanges}
-                  />
+                  <Tab2 config={config} setConfig={setConfig} setHasUnsavedChanges={setHasUnsavedChanges} />
                 </div>
               )}
 
               {selectedTab === 2 && (
                 <div style={{ padding: "20px" }}>
-                  <Tab3
-                    config={config}
-                    setConfig={setConfig}
-                    setHasUnsavedChanges={setHasUnsavedChanges}
-                  />
+                  <Tab3 config={config} setConfig={setConfig} setHasUnsavedChanges={setHasUnsavedChanges} />
                 </div>
               )}
             </div>
@@ -946,9 +869,7 @@ export default function PopupEditor({
                         checked={discountOption === "no-discount"}
                         id="no-discount"
                         name="discount"
-                        onChange={() =>
-                          handleDiscountOptionChange("no-discount")
-                        }
+                        onChange={() => handleDiscountOptionChange("no-discount")}
                       />
 
                       <RadioButton
@@ -956,17 +877,14 @@ export default function PopupEditor({
                         checked={discountOption === "discount-code"}
                         id="discount-code"
                         name="discount"
-                        onChange={() =>
-                          handleDiscountOptionChange("discount-code")
-                        }
+                        onChange={() => handleDiscountOptionChange("discount-code")}
                       />
 
                       {discountOption === "discount-code" && (
                         <div style={{ paddingLeft: "26px" }}>
                           <BlockStack gap="300">
                             <Text variant="bodySm">
-                              Auto-generate a unique and non-reusable code for
-                              each subscription.
+                              Auto-generate a unique and non-reusable code for each subscription.
                             </Text>
 
                             <div>
@@ -979,8 +897,8 @@ export default function PopupEditor({
                                 options={discountTypes}
                                 value={discountType}
                                 onChange={(value) => {
-                                  setDiscountType(value);
-                                  setHasUnsavedChanges(true);
+                                  setDiscountType(value)
+                                  setHasUnsavedChanges(true)
                                 }}
                               />
                             </div>
@@ -999,8 +917,8 @@ export default function PopupEditor({
                                   type="text"
                                   value={discountValue}
                                   onChange={(value) => {
-                                    setDiscountValue(value);
-                                    setHasUnsavedChanges(true);
+                                    setDiscountValue(value)
+                                    setHasUnsavedChanges(true)
                                   }}
                                   autoComplete="off"
                                 />
@@ -1012,8 +930,8 @@ export default function PopupEditor({
                               label="Set expiration on discount"
                               checked={setExpiration}
                               onChange={() => {
-                                setSetExpiration(!setExpiration);
-                                setHasUnsavedChanges(true);
+                                setSetExpiration(!setExpiration)
+                                setHasUnsavedChanges(true)
                               }}
                             />
 
@@ -1034,9 +952,7 @@ export default function PopupEditor({
                                     onChange={handleExpirationDaysChange}
                                     autoComplete="off"
                                   />
-                                  <span style={{ marginLeft: "8px" }}>
-                                    days
-                                  </span>
+                                  <span style={{ marginLeft: "8px" }}>days</span>
                                 </div>
                               </div>
                             )}
@@ -1049,9 +965,7 @@ export default function PopupEditor({
                         checked={discountOption === "manual-discount"}
                         id="manual-discount"
                         name="discount"
-                        onChange={() =>
-                          handleDiscountOptionChange("manual-discount")
-                        }
+                        onChange={() => handleDiscountOptionChange("manual-discount")}
                       />
 
                       {discountOption === "manual-discount" && (
@@ -1059,9 +973,7 @@ export default function PopupEditor({
                           <div style={{ position: "relative" }}>
                             <div
                               style={{
-                                backgroundColor: manualDiscountError
-                                  ? "#FFF4F4"
-                                  : "white",
+                                backgroundColor: manualDiscountError ? "#FFF4F4" : "white",
                                 padding: "1px",
                               }}
                             >
@@ -1087,13 +999,8 @@ export default function PopupEditor({
                               </div>
                             )}
                           </div>
-                          <Text
-                            as="p"
-                            variant="bodySm"
-                            style={{ marginTop: "8px" }}
-                          >
-                            <Link url="#">Create a discount</Link> in your
-                            Shopify admin, and enter it above.
+                          <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
+                            <Link url="#">Create a discount</Link> in your Shopify admin, and enter it above.
                           </Text>
                         </div>
                       )}
@@ -1118,8 +1025,7 @@ export default function PopupEditor({
                       Sticky discount bar
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display a sticky discount bar at the top of your website
-                      after a successful subscription.
+                      Display a sticky discount bar at the top of your website after a successful subscription.
                     </Text>
 
                     <div style={{ marginTop: "8px" }}>
@@ -1161,26 +1067,39 @@ export default function PopupEditor({
                       Sidebar widget
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display a sidebar widget if the customer declines the
-                      popup without subscribing.
+                      Display a sidebar widget if the customer declines the popup without subscribing.
                     </Text>
 
                     <div style={{ marginTop: "8px" }}>
                       <BlockStack gap="100">
                         <RadioButton
                           label="Show"
-                          checked={showStickyBar}
+                          checked={config?.rules?.sidebarWidget?.enabled === true}
                           id="show-sidebar"
                           name="sidebar-widget"
-                          onChange={() => handleShowStickyBarChange(true)}
+                          onChange={() => {
+                            const updatedConfig = { ...config }
+                            if (!updatedConfig.rules) updatedConfig.rules = {}
+                            if (!updatedConfig.rules.sidebarWidget) updatedConfig.rules.sidebarWidget = {}
+                            updatedConfig.rules.sidebarWidget.enabled = true
+                            setConfig(updatedConfig)
+                            setHasUnsavedChanges(true)
+                          }}
                         />
 
                         <RadioButton
                           label="Don't show"
-                          checked={!showStickyBar}
+                          checked={config?.rules?.sidebarWidget?.enabled !== true}
                           id="dont-show-sidebar"
                           name="sidebar-widget"
-                          onChange={() => handleShowStickyBarChange(false)}
+                          onChange={() => {
+                            const updatedConfig = { ...config }
+                            if (!updatedConfig.rules) updatedConfig.rules = {}
+                            if (!updatedConfig.rules.sidebarWidget) updatedConfig.rules.sidebarWidget = {}
+                            updatedConfig.rules.sidebarWidget.enabled = false
+                            setConfig(updatedConfig)
+                            setHasUnsavedChanges(true)
+                          }}
                         />
                       </BlockStack>
                     </div>
@@ -1215,9 +1134,7 @@ export default function PopupEditor({
                         />
 
                         {triggerOption === "timer" && (
-                          <div
-                            style={{ paddingLeft: "26px", marginTop: "-8px" }}
-                          >
+                          <div style={{ paddingLeft: "26px", marginTop: "-8px" }}>
                             <Select
                               label=""
                               labelInline
@@ -1247,8 +1164,8 @@ export default function PopupEditor({
                                   type="text"
                                   value={scrollPercentage}
                                   onChange={(value) => {
-                                    setScrollPercentage(value);
-                                    setHasUnsavedChanges(true);
+                                    setScrollPercentage(value)
+                                    setHasUnsavedChanges(true)
                                   }}
                                   autoComplete="off"
                                 />
@@ -1290,8 +1207,8 @@ export default function PopupEditor({
                       FREQUENCY
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Number of times the popup will show on browser for
-                      non-subscribed customers based on selected time.
+                      Number of times the popup will show on browser for non-subscribed customers based on selected
+                      time.
                     </Text>
 
                     <BlockStack gap="100">
@@ -1361,8 +1278,7 @@ export default function PopupEditor({
                       PAGE RULES
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display the popup based on your set rules.{" "}
-                      <Link url="#">Learn more</Link>.
+                      Display the popup based on your set rules. <Link url="#">Learn more</Link>.
                     </Text>
 
                     <BlockStack gap="100">
@@ -1386,18 +1302,14 @@ export default function PopupEditor({
                         <BlockStack gap="400">
                           <InlineStack gap="200">
                             <Button
-                              variant={
-                                matchOption === "any" ? "primary" : "secondary"
-                              }
+                              variant={matchOption === "any" ? "primary" : "secondary"}
                               onClick={() => handleMatchOptionChange("any")}
                               size="slim"
                             >
                               Match any
                             </Button>
                             <Button
-                              variant={
-                                matchOption === "all" ? "primary" : "secondary"
-                              }
+                              variant={matchOption === "all" ? "primary" : "secondary"}
                               onClick={() => handleMatchOptionChange("all")}
                               size="slim"
                             >
@@ -1465,8 +1377,7 @@ export default function PopupEditor({
                       LOCATION RULES
                     </Text>
                     <Text as="p" variant="bodySm">
-                      Display the popup based on your set rules.{" "}
-                      <Link url="#">Learn more</Link>.
+                      Display the popup based on your set rules. <Link url="#">Learn more</Link>.
                     </Text>
 
                     <BlockStack gap="300">
@@ -1499,19 +1410,11 @@ export default function PopupEditor({
                               connectedRight={
                                 <Button
                                   onClick={() => {
-                                    if (
-                                      countryInputValue &&
-                                      countryOptions.length > 0
-                                    ) {
-                                      handleCountrySelect(
-                                        countryOptions[0].value,
-                                      );
+                                    if (countryInputValue && countryOptions.length > 0) {
+                                      handleCountrySelect(countryOptions[0].value)
                                     }
                                   }}
-                                  disabled={
-                                    !countryInputValue ||
-                                    countryOptions.length === 0
-                                  }
+                                  disabled={!countryInputValue || countryOptions.length === 0}
                                 >
                                   Add
                                 </Button>
@@ -1535,19 +1438,14 @@ export default function PopupEditor({
                                     style={{
                                       padding: "8px 12px",
                                       cursor: "pointer",
-                                      backgroundColor:
-                                        selectedCountryOption === option.value
-                                          ? "#f4f6f8"
-                                          : "white",
+                                      backgroundColor: selectedCountryOption === option.value ? "#f4f6f8" : "white",
                                       borderBottom: "1px solid #e4e5e7",
                                     }}
                                     onClick={() => {
-                                      handleCountrySelect(option.value);
-                                      setCountryPopoverActive(false);
+                                      handleCountrySelect(option.value)
+                                      setCountryPopoverActive(false)
                                     }}
-                                    onMouseEnter={() =>
-                                      setSelectedCountryOption(option.value)
-                                    }
+                                    onMouseEnter={() => setSelectedCountryOption(option.value)}
                                   >
                                     {option.label}
                                   </div>
@@ -1566,9 +1464,7 @@ export default function PopupEditor({
                             )}
 
                             {selectedCountries.length > 0 && (
-                              <div style={{ marginTop: "8px" }}>
-                                {renderCountryTags(selectedCountries)}
-                              </div>
+                              <div style={{ marginTop: "8px" }}>{renderCountryTags(selectedCountries)}</div>
                             )}
                           </BlockStack>
                         </div>
@@ -1595,19 +1491,11 @@ export default function PopupEditor({
                               connectedRight={
                                 <Button
                                   onClick={() => {
-                                    if (
-                                      countryInputValue &&
-                                      countryOptions.length > 0
-                                    ) {
-                                      handleCountrySelect(
-                                        countryOptions[0].value,
-                                      );
+                                    if (countryInputValue && countryOptions.length > 0) {
+                                      handleCountrySelect(countryOptions[0].value)
                                     }
                                   }}
-                                  disabled={
-                                    !countryInputValue ||
-                                    countryOptions.length === 0
-                                  }
+                                  disabled={!countryInputValue || countryOptions.length === 0}
                                 >
                                   Add
                                 </Button>
@@ -1631,19 +1519,14 @@ export default function PopupEditor({
                                     style={{
                                       padding: "8px 12px",
                                       cursor: "pointer",
-                                      backgroundColor:
-                                        selectedCountryOption === option.value
-                                          ? "#f4f6f8"
-                                          : "white",
+                                      backgroundColor: selectedCountryOption === option.value ? "#f4f6f8" : "white",
                                       borderBottom: "1px solid #e4e5e7",
                                     }}
                                     onClick={() => {
-                                      handleCountrySelect(option.value);
-                                      setCountryPopoverActive(false);
+                                      handleCountrySelect(option.value)
+                                      setCountryPopoverActive(false)
                                     }}
-                                    onMouseEnter={() =>
-                                      setSelectedCountryOption(option.value)
-                                    }
+                                    onMouseEnter={() => setSelectedCountryOption(option.value)}
                                   >
                                     {option.label}
                                   </div>
@@ -1662,9 +1545,7 @@ export default function PopupEditor({
                             )}
 
                             {excludedCountries.length > 0 && (
-                              <div style={{ marginTop: "8px" }}>
-                                {renderCountryTags(excludedCountries)}
-                              </div>
+                              <div style={{ marginTop: "8px" }}>{renderCountryTags(excludedCountries)}</div>
                             )}
                           </BlockStack>
                         </div>
@@ -1703,9 +1584,7 @@ export default function PopupEditor({
                         checked={scheduleOption === "time-period"}
                         id="schedule-time-period"
                         name="schedule-option"
-                        onChange={() =>
-                          handleScheduleOptionChange("time-period")
-                        }
+                        onChange={() => handleScheduleOptionChange("time-period")}
                       />
 
                       {scheduleOption === "time-period" && (
@@ -1812,16 +1691,10 @@ export default function PopupEditor({
               }}
             >
               <ButtonGroup segmented>
-                <Button
-                  pressed={selectedDevice === "desktop"}
-                  onClick={() => setSelectedDevice("desktop")}
-                >
+                <Button pressed={selectedDevice === "desktop"} onClick={() => setSelectedDevice("desktop")}>
                   Desktop
                 </Button>
-                <Button
-                  pressed={selectedDevice === "mobile"}
-                  onClick={() => setSelectedDevice("mobile")}
-                >
+                <Button pressed={selectedDevice === "mobile"} onClick={() => setSelectedDevice("mobile")}>
                   Mobile
                 </Button>
               </ButtonGroup>
@@ -1829,11 +1702,7 @@ export default function PopupEditor({
 
             {/* Preview tabs */}
             <div style={{ marginBottom: "16px" }}>
-              <Tabs
-                tabs={previewTabs}
-                selected={selectedPreviewTab}
-                onSelect={handlePreviewTabChange}
-              />
+              <Tabs tabs={previewTabs} selected={selectedPreviewTab} onSelect={handlePreviewTabChange} />
             </div>
 
             {/* Preview Area */}
@@ -1910,8 +1779,7 @@ export default function PopupEditor({
                     </Button>
 
                     <Text variant="bodySm" as="p" alignment="center">
-                      You are signing up to receive communication via email and
-                      can unsubscribe at any time.
+                      You are signing up to receive communication via email and can unsubscribe at any time.
                     </Text>
                   </BlockStack>
                 </div>
@@ -1940,11 +1808,11 @@ export default function PopupEditor({
 
                   <BlockStack gap="400">
                     <Text variant="heading2xl" as="h2" alignment="center">
-                      Discount unlocked 🎉
+                      {config?.content?.success?.heading || "Discount unlocked 🎉"}
                     </Text>
                     <Text variant="bodyLg" as="p" alignment="center">
-                      Thanks for subscribing. Copy your discount code and apply
-                      to your next order.
+                      {config?.content?.success?.description ||
+                        "Thanks for subscribing. Copy your discount code and apply to your next order."}
                     </Text>
 
                     <div
@@ -1977,22 +1845,8 @@ export default function PopupEditor({
                             padding: "1px",
                           }}
                         >
-                          <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#555"
-                            strokeWidth="2"
-                          >
-                            <rect
-                              x="9"
-                              y="9"
-                              width="13"
-                              height="13"
-                              rx="2"
-                              ry="2"
-                            ></rect>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
                           </svg>
                         </button>
@@ -2013,7 +1867,7 @@ export default function PopupEditor({
                         marginTop: "8px",
                       }}
                     >
-                      Shop now
+                      {config?.content?.actions2?.primaryButtonText || "Shop now"}
                     </button>
                   </BlockStack>
                 </div>
@@ -2025,8 +1879,7 @@ export default function PopupEditor({
                   style={{
                     backgroundColor: "white",
                     width: "100%",
-                    padding:
-                      selectedDevice === "desktop" ? "12px 24px" : "12px 16px",
+                    padding: selectedDevice === "desktop" ? "12px 24px" : "12px 16px",
                     boxShadow: "0px 2px 4px rgba(0,0,0,0.1)",
                     display: "flex",
                     justifyContent: "space-between",
@@ -2035,8 +1888,7 @@ export default function PopupEditor({
                     top: 0,
                     left: 0,
                     right: 0,
-                    flexDirection:
-                      selectedDevice === "desktop" ? "row" : "column",
+                    flexDirection: selectedDevice === "desktop" ? "row" : "column",
                     gap: selectedDevice === "desktop" ? "16px" : "8px",
                   }}
                 >
@@ -2047,8 +1899,7 @@ export default function PopupEditor({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      flex:
-                        selectedDevice === "desktop" ? "0 0 300px" : "1 1 auto",
+                      flex: selectedDevice === "desktop" ? "0 0 300px" : "1 1 auto",
                       width: selectedDevice === "desktop" ? "auto" : "100%",
                     }}
                   >
@@ -2074,22 +1925,8 @@ export default function PopupEditor({
                           padding: "1px",
                         }}
                       >
-                        <svg
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#555"
-                          strokeWidth="2"
-                        >
-                          <rect
-                            x="9"
-                            y="9"
-                            width="13"
-                            height="13"
-                            rx="2"
-                            ry="2"
-                          ></rect>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                           <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
                         </svg>
                       </button>
@@ -2098,13 +1935,7 @@ export default function PopupEditor({
                   <Button
                     variant="plain"
                     icon={
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                           d="M15 5L5 15"
                           stroke="currentColor"
@@ -2126,10 +1957,7 @@ export default function PopupEditor({
                       position: "absolute",
                       right: "8px",
                       top: selectedDevice === "desktop" ? "50%" : "8px",
-                      transform:
-                        selectedDevice === "desktop"
-                          ? "translateY(-50%)"
-                          : "none",
+                      transform: selectedDevice === "desktop" ? "translateY(-50%)" : "none",
                     }}
                   />
                 </div>
@@ -2145,8 +1973,7 @@ export default function PopupEditor({
                     backgroundColor: "#333333",
                     color: "white",
                     width: selectedDevice === "desktop" ? "80px" : "100%",
-                    borderRadius:
-                      selectedDevice === "desktop" ? "4px" : "4px 4px 0 0",
+                    borderRadius: selectedDevice === "desktop" ? "4px" : "4px 4px 0 0",
                     overflow: "hidden",
                     boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
                   }}
@@ -2163,13 +1990,7 @@ export default function PopupEditor({
                       variant="plain"
                       monochrome
                       icon={
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path
                             d="M15 5L5 15"
                             stroke="white"
@@ -2205,14 +2026,8 @@ export default function PopupEditor({
                       color="subdued"
                       style={{
                         color: "white",
-                        writingMode:
-                          selectedDevice === "desktop"
-                            ? "vertical-rl"
-                            : "horizontal-tb",
-                        transform:
-                          selectedDevice === "desktop"
-                            ? "rotate(180deg)"
-                            : "none",
+                        writingMode: selectedDevice === "desktop" ? "vertical-rl" : "horizontal-tb",
+                        transform: selectedDevice === "desktop" ? "rotate(180deg)" : "none",
                       }}
                     >
                       Get 10% OFF
@@ -2225,5 +2040,5 @@ export default function PopupEditor({
         </div>
       </div>
     </Frame>
-  );
+  )
 }

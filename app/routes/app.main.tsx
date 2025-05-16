@@ -3,6 +3,46 @@ import { json } from "@remix-run/node";
 import { prisma } from "../lib/prisma.server";
 import { getPopupsByStore } from "../services/popup.server";
 
+/**
+ * Checks if a popup is valid based on its scheduling configuration
+ * @param scheduleConfig The schedule configuration from the popup
+ * @returns boolean indicating if the popup should be active
+ */
+function checkScheduleValidity(scheduleConfig: any): boolean {
+  // If schedule type is ALL_TIME, the popup is always valid
+  if (scheduleConfig.type === "ALL_TIME") {
+    return true;
+  }
+  
+  // For TIME_RANGE, check if current time falls within the range
+  if (scheduleConfig.type === "TIME_RANGE") {
+    const now = new Date();
+    
+    // If there's no start date, consider it invalid
+    if (!scheduleConfig.start) {
+      return false;
+    }
+    
+    const startDate = new Date(scheduleConfig.start);
+    
+    // If current time is before start date, it's not yet valid
+    if (now < startDate) {
+      return false;
+    }
+    
+    // If there's an end date and current time is after it, it's no longer valid
+    if (scheduleConfig.end && now > new Date(scheduleConfig.end)) {
+      return false;
+    }
+    
+    // Otherwise, it's valid (after start date and either no end date or before end date)
+    return true;
+  }
+  
+  // Default to true for unknown schedule types to prevent breaking existing popups
+  return true;
+}
+
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
@@ -31,6 +71,18 @@ export const loader: LoaderFunction = async ({ request }) => {
       return json({ 
         hasActivePopup: false,
         message: "No active popup found for this store"
+      });
+    }
+    
+    // Check if the popup is valid based on its scheduling configuration
+    const config = activePopup.config as any;
+    const scheduleConfig = config?.schedule || { type: "ALL_TIME" };
+    const isScheduleValid = checkScheduleValidity(scheduleConfig);
+    
+    if (!isScheduleValid) {
+      return json({ 
+        hasActivePopup: false,
+        message: "Popup is not currently scheduled to be active"
       });
     }
 
@@ -100,6 +152,17 @@ export const action: ActionFunction = async ({ request }) => {
     // Check if manual_discount is enabled
     const manualDiscountEnabled = discountConfig?.manual_discount?.enabled === true;
     
+    // Check scheduling configuration
+    const scheduleConfig = config?.schedule || { type: "ALL_TIME" };
+    const isScheduleValid = checkScheduleValidity(scheduleConfig);
+    
+    if (!isScheduleValid) {
+      return json({ 
+        error: "Popup is not currently scheduled to be active",
+        details: "The popup is outside its configured schedule"
+      }, { status: 400 });
+    }
+    
     let discountCode = null;
     let discountCreated = false;
     
@@ -112,23 +175,67 @@ export const action: ActionFunction = async ({ request }) => {
       const accessToken = store.accessToken;
       const apiVersion = "2023-10";
       
-      // Get discount value from config with fallbacks
-      // Default to percentage if discountType is null or invalid
-      const discountType = discountConfig?.discount_code?.discountType || "percentage";
+      // FIXED: Get discount type and value from potentially different locations in the config
+      // Some configurations have them directly in discountConfig, others nested in discount_code
+      const rawDiscountType = discountConfig?.discountType || discountConfig?.discount_code?.discountType || "percentage";
+      const rawDiscountValue = discountConfig?.discountValue || discountConfig?.discount_code?.discountValue || "10";
       
-      // Default to -10 if discountValue is null
-      const discountValue = discountConfig?.discount_code?.discountValue || "-10";
+      console.log("Discount config:", { 
+        rawDiscountType, 
+        rawDiscountValue,
+        fullConfig: JSON.stringify(discountConfig, null, 2)
+      });
+      
+      // Map to Shopify's expected value_type format
+      let valueType = "percentage"; // default
+      if (rawDiscountType === "fixed") {
+        valueType = "fixed_amount";
+      } else if (rawDiscountType === "percentage") {
+        valueType = "percentage";
+      } else {
+        valueType = rawDiscountType;
+      }
+      
+      // Format discount value appropriately
+      let discountValue = rawDiscountValue.toString().replace(/^-/, '');
+      
+      // For Shopify API: percentage needs negative sign, fixed_amount doesn't
+      if (valueType === "percentage") {
+        discountValue = `-${discountValue}`;
+      }
+      
+      console.log("Formatted for Shopify:", { valueType, discountValue });
       
       // Get expiration settings
       const expirationEnabled = discountConfig?.discount_code?.expiration?.enabled === true;
       const expirationDays = discountConfig?.discount_code?.expiration?.days || 30;
       
-      // Calculate end date based on expiration settings
-      const endDate = expirationEnabled 
-        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString()
-        : null;
+      // Calculate start and end dates based on both expiration settings and schedule
+      let startDate = new Date().toISOString();
+      let endDate = null;
+      
+      // If schedule is TIME_RANGE, use those dates as boundaries
+      if (scheduleConfig.type === "TIME_RANGE") {
+        if (scheduleConfig.start) {
+          startDate = new Date(scheduleConfig.start).toISOString();
+        }
+        
+        if (scheduleConfig.end) {
+          endDate = new Date(scheduleConfig.end).toISOString();
+        }
+      }
+      
+      // If expiration is enabled, calculate end date based on current time plus days
+      // But only if it's before the schedule end date or if no schedule end date exists
+      if (expirationEnabled) {
+        const expirationDate = new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString();
+        
+        if (!endDate || new Date(expirationDate) < new Date(endDate)) {
+          endDate = expirationDate;
+        }
+      }
 
-      discountCode = `WELCOME10-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      discountCode = `WELCOME${rawDiscountValue}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
       // 🏷️ Create price rule
       const priceRuleRes = await fetch(`https://${shop}/admin/api/${apiVersion}/price_rules.json`, {
@@ -143,10 +250,10 @@ export const action: ActionFunction = async ({ request }) => {
             target_type: "line_item",
             target_selection: "all",
             allocation_method: "across",
-            value_type: discountType,
+            value_type: valueType,
             value: discountValue,
             customer_selection: "all",
-            starts_at: new Date().toISOString(),
+            starts_at: startDate,
             ...(endDate && { ends_at: endDate }),
             usage_limit: 1000,
             once_per_customer: true,
@@ -156,6 +263,7 @@ export const action: ActionFunction = async ({ request }) => {
 
       if (!priceRuleRes.ok) {
         const errorText = await priceRuleRes.text();
+        console.error("Price rule creation failed:", errorText);
         throw new Error(`Failed to create price rule: ${errorText}`);
       }
 
@@ -178,6 +286,7 @@ export const action: ActionFunction = async ({ request }) => {
 
       if (!discountRes.ok) {
         const errorText = await discountRes.text();
+        console.error("Discount code creation failed:", errorText);
         throw new Error(`Failed to create discount code: ${errorText}`);
       }
       

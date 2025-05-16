@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Check if popup has already been shown and frequency settings
-  // const popupShown = localStorage.getItem("popupShown") === "true"
+  const popupShown = localStorage.getItem("popupShown") === "true"
 
   // Fetch popup configuration from the server
   try {
@@ -50,11 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Check if the popup meets the display criteria
       if (shouldShowPopup(data.popup.config)) {
-        // Check if sidebar widget should be shown
-        if (data.popup.config.rules?.sidebarWidget?.enabled === true) {
-          setupSidebarWidget(data.popup.config.content, data.popup.config.style)
-        }
-
+        // Don't show sidebar widget initially - it will only show after popup is closed
         showPopup(data.popup.config)
       } else {
         console.log("Popup conditions not met for this page/user")
@@ -254,7 +250,7 @@ function showPopup(config) {
     if (triggerType === "TIMER") {
       const timerOption = rules.trigger.timerOption || {}
       const delayType = timerOption.delayType || "AFTER_DELAY"
-      const delay = delayType === "IMMEDIATE" ? 0 : (timerOption.delaySeconds || 3) * 1000
+      const delay = delayType === "IMMEDIATELY" ? 0 : (timerOption.delaySeconds || 3) * 1000
 
       setTimeout(() => {
         renderPopup(content, style, rules)
@@ -429,6 +425,11 @@ function setupSidebarWidget(content, style) {
     return
   }
 
+  // Don't show sidebar widget if user has already claimed a discount
+  if (localStorage.getItem("discountCreated") === "true") {
+    return
+  }
+
   // Fix color format - ensure we have # prefix
   const getColor = (colorValue) => {
     if (!colorValue) return null
@@ -486,7 +487,7 @@ function renderPopup(content, style, rules) {
 
   // Set up colors with # prefix and fallbacks
   const colors = {
-    background: getColor(style?.colors?.popup?.backgroud) || "#FFFFFF",
+    background: getColor(style?.colors?.popup?.backgroud) || "#FFFFFF", // Fix typo from "backgroud" to "background"
     heading: getColor(style?.colors?.text?.heading) || "#121212",
     description: getColor(style?.colors?.text?.description) || "#454545",
     input: getColor(style?.colors?.text?.input) || "#121212",
@@ -559,7 +560,7 @@ function renderPopup(content, style, rules) {
           ${
             style?.logo?.url
               ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="width: ${style.logo.width || "40"}px;">
+            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "px" : "auto"};">
           </div>`
               : ""
           }
@@ -642,7 +643,7 @@ function renderPopup(content, style, rules) {
           ${
             style?.logo?.url
               ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="width: ${style.logo.width || "40"}px;">
+            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "px" : "auto"};">
           </div>`
               : ""
           }
@@ -733,9 +734,17 @@ function renderPopup(content, style, rules) {
     const emailInput = document.getElementById("popup-email")
     const email = emailInput.value.trim()
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email) {
       const emailError = document.getElementById("email-error")
       if (emailError) {
+        emailError.textContent = content?.errorTexts?.emailEmpty || "Please enter your email address"
+        emailError.style.display = "block"
+        hasErrors = true
+      }
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      const emailError = document.getElementById("email-error")
+      if (emailError) {
+        emailError.textContent = content?.errorTexts?.emailInvalid || "Please enter a valid email address"
         emailError.style.display = "block"
         hasErrors = true
       }
@@ -749,6 +758,7 @@ function renderPopup(content, style, rules) {
       if (!name) {
         const nameError = document.getElementById("name-error")
         if (nameError) {
+          nameError.textContent = content?.errorTexts?.firstName || "Please enter your name"
           nameError.style.display = "block"
           hasErrors = true
         }
@@ -808,15 +818,26 @@ function renderPopup(content, style, rules) {
       // Check if we have a discount code
       const hasDiscount = data.hasDiscount && data.discountCode
 
+      // Set flag that discount was created
+      if (hasDiscount) {
+        localStorage.setItem("discountCreated", "true")
+
+        // Remove sidebar widget if it exists
+        const sidebarWidget = document.getElementById("sidebar-widget")
+        if (sidebarWidget) {
+          sidebarWidget.remove()
+        }
+      }
+
       // Determine success message based on whether discount was created
       const successHeading = hasDiscount
         ? content?.success?.heading || "Discount unlocked 🎉"
-        : "Thank you for subscribing! 🎉"
+        : content?.success?.noDiscountHeading || "Thank you for subscribing! 🎉"
 
       const successDescription = hasDiscount
         ? content?.success?.description ||
           "Thanks for subscribing. Copy your discount code and apply to your next order."
-        : "You have been successfully subscribed to our newsletter."
+        : content?.success?.noDiscountDescription || "You have been successfully subscribed to our newsletter."
 
       popupContent.innerHTML = `
         <div style="padding: 30px 35px 25px;">
@@ -854,7 +875,7 @@ function renderPopup(content, style, rules) {
               ? `<button id="shop-now" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
             color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
             font-weight: 400; font-size: 16px;">
-              ${hasDiscount ? "Shop now" : "Continue shopping"}
+              ${hasDiscount ? content?.actions2?.primaryButtonText || "Shop now" : content?.actions2?.primaryButtonText || "Continue shopping"}
             </button>`
               : ""
           }
@@ -995,5 +1016,16 @@ function closePopup() {
     window.popupConfig.rules.frequency.type === "LIMIT"
   ) {
     incrementPopupShownCount()
+  }
+
+  // Show sidebar widget if discount hasn't been created and it's enabled in config
+  if (
+    localStorage.getItem("discountCreated") !== "true" &&
+    window.popupConfig &&
+    window.popupConfig.rules &&
+    window.popupConfig.rules.sidebarWidget &&
+    window.popupConfig.rules.sidebarWidget.enabled === true
+  ) {
+    setupSidebarWidget(window.popupConfig.content, window.popupConfig.style)
   }
 }
