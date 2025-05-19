@@ -269,8 +269,8 @@ function showPopup(config) {
     if (triggerType === "TIMER") {
       const timerOption = rules.trigger.timerOption || {}
       const delayOption = timerOption.delayOption || {} // Declare delayOption here
-      const delayType = delayOption.delayType || "AFTER_DELAY"
-      const delay = delayType === "IMMEDIATELY" ? 0 : (timerOption.delaySeconds || 3) * 1000
+      const delayType = delayOption === "IMMEDIATELY" ? 0 : (timerOption.delaySeconds || 3) * 1000
+      const delay = delayType
 
       setTimeout(() => {
         renderPopup(content, style, rules)
@@ -738,150 +738,258 @@ function renderPopup(content, style, rules) {
   // Create the popup HTML structure based on layout
   let popupStructure = ""
   const layout = style?.layout || "None"
-  const hasImage = style?.image !== undefined // Declare hasImage here
+  const hasImage = style?.image !== undefined
 
-  if (layout === "Left" || layout === "Right") {
-    // Side by side layout
-    const imageOnLeft = layout === "Left"
-
-    // Apply alignment to content based on the alignment setting
-    const contentAlignment = textAlignment.toLowerCase()
-    const secondaryBtnAlignment = contentAlignment === "center" ? "center" : contentAlignment
-
+  if (layout === "Left") {
+    // Image on left, content on right
     popupStructure = `
-      <div id="popup-content" style="display: flex; flex-direction: ${imageOnLeft ? "row" : "row-reverse"};">
-        ${
-          hasImage
-            ? `
-          <div style="flex: 0 0 ${imageWidth}%; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnLeft ? `${borderRadius} 0 0 ${borderRadius}` : `0 ${borderRadius} ${borderRadius} 0`};"></div>
-        `
-            : ""
-        }
-        <div style="flex: 1 1 ${hasImage ? `${100 - imageWidth}%` : "100%"}; padding: 30px 35px 25px;">
-          <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
-          cursor: pointer; font-size: 24px; color: #777;">×</button>
-          
-          ${
-            style?.logo?.url
-              ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
-          </div>`
-              : ""
-          }
-          
-          <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
-          text-align: ${textAlignment.toLowerCase()};">
-            ${content?.Heading || "Get 10% OFF your order"}
-          </h2>
-          
-          <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
-          text-align: ${textAlignment.toLowerCase()};">
-            ${content?.Description || "Sign up and unlock your instant discount."}
-          </p>
-          
-          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
-            ${generateFormFieldsHTML()}
-            
-            ${
-              content?.actions1?.primary
-                ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
-                color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
-                font-weight: 400; font-size: 16px;">
-                  ${buttonText}
-                </button>`
-                : ""
-            }
-          </form>
-          
-          ${
-            content?.actions1?.secondary
-              ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
-              <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
-              cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
-                ${content?.actions1?.secondaryButtonText || "No, thanks"}
-              </button>
-            </div>`
-              : ""
-          }
-          
-          <p style="margin-top: 20px; margin-bottom: 0; color: ${colors.footerText}; font-size: 12px; 
-          text-align: center; line-height: 1.5;">
-            ${content?.footer?.footerText || "You can unsubscribe at any time."}
-          </p>
-        </div>
-      </div>
+  <div id="popup-content" style="display: flex; flex-direction: row; height: 100%;">
+    ${
+      hasImage
+        ? `
+      <div style="flex: 0 0 ${imageWidth}%; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${borderRadius} 0 0 ${borderRadius};"></div>
     `
-  } else {
-    // Top or Bottom layout
-    const imageOnTop = layout === "Top"
-
-    // Apply alignment to content based on the alignment setting
-    const contentAlignment = textAlignment.toLowerCase()
-    const secondaryBtnAlignment = contentAlignment === "center" ? "center" : contentAlignment
-
-    popupStructure = `
-      <div id="popup-content" style="display: flex; flex-direction: ${imageOnTop ? "column" : "column-reverse"};">
+        : ""
+    }
+    <div style="flex: 1 1 ${hasImage ? `${100 - imageWidth}%` : "100%"}; padding: 30px 35px 25px; display: flex; flex-direction: column; justify-content: center;">
+      <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
+      cursor: pointer; font-size: 24px; color: #777;">×</button>
+      
+      ${
+        style?.logo?.url
+          ? `<div style="text-align: center; margin-bottom: 20px;">
+        <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
+      </div>`
+          : ""
+      }
+      
+      <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
+      text-align: ${textAlignment.toLowerCase()};">
+        ${content?.Heading || "Get 10% OFF your order"}
+      </h2>
+      
+      <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
+      text-align: ${textAlignment.toLowerCase()};">
+        ${content?.Description || "Sign up and unlock your instant discount."}
+      </p>
+      
+      <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
+        ${generateFormFieldsHTML()}
+        
         ${
-          hasImage
-            ? `
-          <div style="height: 200px; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnTop ? `${borderRadius} ${borderRadius} 0 0` : `0 0 ${borderRadius} ${borderRadius}`};"></div>
-        `
-            : ""
-        }
-        <div style="padding: 30px 35px 25px;">
-          <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
-          cursor: pointer; font-size: 24px; color: #777;">×</button>
-          
-          ${
-            style?.logo?.url
-              ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
-          </div>`
-              : ""
-          }
-          
-          <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
-          text-align: ${textAlignment.toLowerCase()};">
-            ${content?.Heading || "Get 10% OFF your order"}
-          </h2>
-          
-          <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
-          text-align: ${textAlignment.toLowerCase()};">
-            ${content?.Description || "Sign up and unlock your instant discount."}
-          </p>
-          
-          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
-            ${generateFormFieldsHTML()}
-            
-            ${
-              content?.actions1?.primary
-                ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+          content?.actions1?.primary
+            ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
             color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
             font-weight: 400; font-size: 16px;">
               ${buttonText}
             </button>`
-                : ""
-            }
-          </form>
+            : ""
+        }
+      </form>
+      
+      ${
+        content?.actions1?.secondary
+          ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
+          <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
+          cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
+            ${content?.actions1?.secondaryButtonText || "No, thanks"}
+          </button>
+        </div>`
+          : ""
+      }
+      
+      <p style="margin-top: 20px; margin-bottom: 0; color: ${colors.footerText}; font-size: 12px; 
+      text-align: center; line-height: 1.5;">
+        ${content?.footer?.footerText || "You are signing up to receive communication via email and can unsubscribe at any time."}
+      </p>
+    </div>
+  </div>
+`
+  } else if (layout === "Right") {
+    // Image on right, content on left
+    popupStructure = `
+  <div id="popup-content" style="display: flex; flex-direction: row; height: 100%;">
+    <div style="flex: 1 1 ${hasImage ? `${100 - imageWidth}%` : "100%"}; padding: 30px 35px 25px; display: flex; flex-direction: column; justify-content: center;">
+      <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
+      cursor: pointer; font-size: 24px; color: #777;">×</button>
+      
+      ${
+        style?.logo?.url
+          ? `<div style="text-align: center; margin-bottom: 20px;">
+        <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
+      </div>`
+          : ""
+      }
+      
+      <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
+      text-align: ${textAlignment.toLowerCase()};">
+        ${content?.Heading || "Get 10% OFF your order"}
+      </h2>
+      
+      <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
+      text-align: ${textAlignment.toLowerCase()};">
+        ${content?.Description || "Sign up and unlock your instant discount."}
+      </p>
+      
+      <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
+        ${generateFormFieldsHTML()}
+        
+        ${
+          content?.actions1?.primary
+            ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+            color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
+            font-weight: 400; font-size: 16px;">
+              ${buttonText}
+            </button>`
+            : ""
+        }
+      </form>
+      
+      ${
+        content?.actions1?.secondary
+          ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
+          <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
+          cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
+            ${content?.actions1?.secondaryButtonText || "No, thanks"}
+          </button>
+        </div>`
+          : ""
+      }
+      
+      <p style="margin-top: 20px; margin-bottom: 0; color: ${colors.footerText}; font-size: 12px; 
+      text-align: center; line-height: 1.5;">
+        ${content?.footer?.footerText || "You are signing up to receive communication via email and can unsubscribe at any time."}
+      </p>
+    </div>
+    ${
+      hasImage
+        ? `
+      <div style="flex: 0 0 ${imageWidth}%; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: 0 ${borderRadius} ${borderRadius} 0;"></div>
+    `
+        : ""
+    }
+  </div>
+`
+  } else if (layout === "Background") {
+    // Image as background with content overlay
+    popupStructure = `
+    <div id="popup-content" style="position: relative; ${
+      hasImage ? `background-image: url('${style.image}'); background-size: cover; background-position: center;` : ""
+    }">
+      <div style="position: relative; padding: 30px 35px 25px; ${
+        hasImage ? "background-color: rgba(0,0,0,0.5);" : ""
+      } border-radius: ${borderRadius};">
+        <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
+        cursor: pointer; font-size: 24px; color: #fff; z-index: 2;">×</button>
+        
+        ${
+          style?.logo?.url
+            ? `<div style="text-align: center; margin-bottom: 20px;">
+          <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
+        </div>`
+            : ""
+        }
+        
+        <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: #fff; 
+        text-align: ${textAlignment.toLowerCase()}; position: relative; z-index: 1;">
+          ${content?.Heading || "Get 10% OFF your order"}
+        </h2>
+        
+        <p style="margin-top: 0; margin-bottom: 25px; color: #fff; font-size: 16px; 
+        text-align: ${textAlignment.toLowerCase()}; position: relative; z-index: 1;">
+          ${content?.Description || "Sign up and unlock your instant discount."}
+        </p>
+        
+        <form id="email-form" style="display: flex; flex-direction: column; gap: 15px; position: relative; z-index: 1;" novalidate>
+          ${generateFormFieldsHTML()}
           
           ${
-            content?.actions1?.secondary
-              ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
-              <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
-              cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
-                ${content?.actions1?.secondaryButtonText || "No, thanks"}
-              </button>
-            </div>`
+            content?.actions1?.primary
+              ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+              color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
+              font-weight: 400; font-size: 16px;">
+                ${buttonText}
+              </button>`
               : ""
           }
-          
-          <p style="margin-top: 20px; margin-bottom: 0; color: ${colors.footerText}; font-size: 12px; 
-          text-align: center; line-height: 1.5;">
-            ${content?.footer?.footerText || "You can unsubscribe at any time."}
-          </p>
-        </div>
+        </form>
+        
+        ${
+          content?.actions1?.secondary
+            ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px; position: relative; z-index: 1;">
+            <button id="no-thanks" style="background: none; border: none; color: #fff; 
+            cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
+              ${content?.actions1?.secondaryButtonText || "No, thanks"}
+            </button>
+          </div>`
+            : ""
+        }
+        
+        <p style="margin-top: 20px; margin-bottom: 0; color: #fff; font-size: 12px; 
+        text-align: center; line-height: 1.5; position: relative; z-index: 1;">
+          ${content?.footer?.footerText || "You can unsubscribe at any time."}
+        </p>
       </div>
-    `
+    </div>
+  `
+  } else {
+    // Default layout (no image or image position not specified)
+    popupStructure = `
+    <div id="popup-content">
+      <div style="padding: 30px 35px 25px;">
+        <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
+        cursor: pointer; font-size: 24px; color: #777;">×</button>
+        
+        ${
+          style?.logo?.url
+            ? `<div style="text-align: center; margin-bottom: 20px;">
+          <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
+        </div>`
+            : ""
+        }
+        
+        <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
+        text-align: ${textAlignment.toLowerCase()};">
+          ${content?.Heading || "Get 10% OFF your order"}
+        </h2>
+        
+        <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
+        text-align: ${textAlignment.toLowerCase()};">
+          ${content?.Description || "Sign up and unlock your instant discount."}
+        </p>
+        
+        <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
+          ${generateFormFieldsHTML()}
+          
+          ${
+            content?.actions1?.primary
+              ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+              color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
+              font-weight: 400; font-size: 16px;">
+                ${buttonText}
+              </button>`
+              : ""
+          }
+        </form>
+        
+        ${
+          content?.actions1?.secondary
+            ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
+            <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
+            cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
+              ${content?.actions1?.secondaryButtonText || "No, thanks"}
+            </button>
+          </div>`
+            : ""
+        }
+        
+        <p style="margin-top: 20px; margin-bottom: 0; color: ${colors.footerText}; font-size: 12px; 
+        text-align: center; line-height: 1.5;">
+          ${content?.footer?.footerText || "You can unsubscribe at any time."}
+        </p>
+      </div>
+    </div>
+  `
   }
 
   // Create the popup container
