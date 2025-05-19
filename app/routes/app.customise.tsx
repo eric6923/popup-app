@@ -922,7 +922,7 @@ export default function PopupEditor({
                                   }}
                                   autoComplete="off"
                                 />
-                                <span style={{ marginLeft: "8px" }}>%</span>
+                                <span style={{ marginLeft: "8px" }}></span>
                               </div>
                             </div>
 

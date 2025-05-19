@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://hired-distributed-each-grip.trycloudflare.com"
+application_url = "https://italian-completely-summit-assured.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,15 +27,15 @@ scopes = "write_products,write_discounts,write_price_rules"
 
 [auth]
 redirect_urls = [
-  "https://hired-distributed-each-grip.trycloudflare.com/auth/callback",
-  "https://hired-distributed-each-grip.trycloudflare.com/auth/shopify/callback",
-  "https://hired-distributed-each-grip.trycloudflare.com/api/auth/callback"
+  "https://italian-completely-summit-assured.trycloudflare.com/auth/callback",
+  "https://italian-completely-summit-assured.trycloudflare.com/auth/shopify/callback",
+  "https://italian-completely-summit-assured.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://hired-distributed-each-grip.trycloudflare.com/app/main"
+url = "https://italian-completely-summit-assured.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"

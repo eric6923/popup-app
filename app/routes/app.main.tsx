@@ -211,6 +211,134 @@ async function createGraphQLDiscountCode(
   }
 }
 
+/**
+ * Creates a free shipping discount code using Shopify's GraphQL API
+ */
+async function createFreeShippingDiscountCode(
+  shop: string,
+  accessToken: string,
+  options: {
+    title: string
+    code: string
+    startsAt: Date
+    endsAt: Date | null
+    minimumSubtotal?: string | null
+    appliesOncePerCustomer?: boolean
+  },
+) {
+  console.log("Creating free shipping discount with GraphQL for shop:", shop)
+
+  const { title, code, startsAt, endsAt, minimumSubtotal = null, appliesOncePerCustomer = true } = options
+
+  // Prepare the variables for the GraphQL mutation
+  const variables: any = {
+    freeShippingCodeDiscount: {
+      title,
+      code,
+      startsAt: startsAt.toISOString(),
+      appliesOncePerCustomer,
+      customerSelection: {
+        all: true,
+      },
+      destination: {
+        all: true,
+      },
+    },
+  }
+
+  // Add end date if provided
+  if (endsAt) {
+    variables.freeShippingCodeDiscount.endsAt = endsAt.toISOString()
+  }
+
+  // Only add minimum requirement if a valid subtotal is provided
+  if (minimumSubtotal && Number.parseFloat(minimumSubtotal) > 0) {
+    variables.freeShippingCodeDiscount.minimumRequirement = {
+      subtotal: {
+        greaterThanOrEqualToSubtotal: Number.parseFloat(minimumSubtotal),
+      },
+    }
+  }
+
+  try {
+    console.log("Free Shipping GraphQL variables:", JSON.stringify(variables, null, 2))
+    const response = await fetch(`https://${shop}/admin/api/2024-04/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": accessToken,
+      },
+      body: JSON.stringify({
+        query: `mutation discountCodeFreeShippingCreate($freeShippingCodeDiscount: DiscountCodeFreeShippingInput!) {
+          discountCodeFreeShippingCreate(freeShippingCodeDiscount: $freeShippingCodeDiscount) {
+            codeDiscountNode {
+              id
+              codeDiscount {
+                ... on DiscountCodeFreeShipping {
+                  title
+                  startsAt
+                  endsAt
+                  status
+                  appliesOncePerCustomer
+                  codes(first: 2) {
+                    nodes {
+                      code
+                    }
+                  }
+                  customerSelection {
+                    ... on DiscountCustomerAll {
+                      allCustomers
+                    }
+                  }
+                  destinationSelection {
+                    ... on DiscountCountryAll {
+                      allCountries
+                    }
+                  }
+                  minimumRequirement {
+                    ... on DiscountMinimumSubtotal {
+                      greaterThanOrEqualToSubtotal {
+                        amount
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }`,
+        variables,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.errors || result.data?.discountCodeFreeShippingCreate?.userErrors?.length) {
+      const errors = result.errors || result.data.discountCodeFreeShippingCreate.userErrors
+      console.error("GraphQL errors:", errors)
+      throw new Error(errors.map((e: any) => e.message).join(", "))
+    }
+
+    console.log(
+      "Free Shipping Discount created successfully:",
+      result.data.discountCodeFreeShippingCreate.codeDiscountNode,
+    )
+    return result.data.discountCodeFreeShippingCreate.codeDiscountNode
+  } catch (error) {
+    console.error("Failed to create free shipping discount:", error)
+    throw new Error(`Free shipping discount creation failed: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url)
   const shop = url.searchParams.get("shop")
@@ -351,7 +479,11 @@ export const action: ActionFunction = async ({ request }) => {
       // Get discount type and value from potentially different locations in the config
       const rawDiscountType =
         discountConfig?.discountType || discountConfig?.discount_code?.discountType || "percentage"
-      const rawDiscountValue = discountConfig?.discountValue || discountConfig?.discount_code?.discountValue || "10"
+      // For free shipping, we don't need a value
+      const rawDiscountValue =
+        rawDiscountType === "free-shipping"
+          ? ""
+          : discountConfig?.discountValue || discountConfig?.discount_code?.discountValue || "10"
 
       console.log("Discount config:", {
         rawDiscountType,
@@ -365,7 +497,7 @@ export const action: ActionFunction = async ({ request }) => {
 
       // Calculate start and end dates based on both expiration settings and schedule
       let startDate = new Date()
-      let endDate = new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000)
+      let endDate = expirationEnabled ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000) : null
 
       // If schedule is TIME_RANGE, use those dates as boundaries
       if (scheduleConfig.type === "TIME_RANGE") {
@@ -373,51 +505,80 @@ export const action: ActionFunction = async ({ request }) => {
           startDate = new Date(scheduleConfig.start)
         }
 
-        if (scheduleConfig.end) {
+        if (scheduleConfig.end && endDate) {
           const scheduleEndDate = new Date(scheduleConfig.end)
           if (scheduleEndDate < endDate) {
             endDate = scheduleEndDate
           }
+        } else if (scheduleConfig.end) {
+          endDate = new Date(scheduleConfig.end)
         }
       }
 
       // Generate a unique discount code
-      discountCode = `WELCOME${rawDiscountValue}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+      discountCode =
+        rawDiscountType === "free-shipping"
+          ? `FREESHIP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+          : `WELCOME${rawDiscountValue}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
       try {
-        // Parse discount value as a number (don't convert percentage to decimal)
-        const discountValue = Number.parseFloat(rawDiscountValue)
-
-        // Check for valid discount value
-        if (isNaN(discountValue)) {
-          throw new Error("Invalid discount value: " + rawDiscountValue)
-        }
-
         // Get minimum subtotal if configured
         const minimumSubtotal = discountConfig?.discount_code?.minimumSubtotal || null
 
-        // Create discount code using GraphQL API
-        const discountResult = await createGraphQLDiscountCode(shop, accessToken, {
-          title: `Welcome Discount for ${email}`,
-          code: discountCode,
-          startsAt: startDate,
-          endsAt: endDate,
-          discountType: rawDiscountType === "percentage" ? "percentage" : "fixed",
-          discountValue: rawDiscountType === "percentage" ? discountValue / 100 : discountValue, // Only convert to decimal if percentage
-          minimumSubtotal: minimumSubtotal,
-          usageLimit: 1000,
-          appliesOncePerCustomer: true,
-        })
+        // Create discount code based on discount type
+        if (rawDiscountType === "free-shipping") {
+          // Create free shipping discount code
+          const discountResult = await createFreeShippingDiscountCode(shop, accessToken, {
+            title: `Free Shipping for ${email}`,
+            code: discountCode,
+            startsAt: startDate,
+            endsAt: endDate,
+            minimumSubtotal: minimumSubtotal,
+            appliesOncePerCustomer: true,
+          })
 
-        // Extract the discount code from the response if available
-        if (
-          discountResult &&
-          discountResult.codeDiscount &&
-          discountResult.codeDiscount.codes &&
-          discountResult.codeDiscount.codes.nodes &&
-          discountResult.codeDiscount.codes.nodes.length > 0
-        ) {
-          discountCode = discountResult.codeDiscount.codes.nodes[0].code
+          // Extract the discount code from the response if available
+          if (
+            discountResult &&
+            discountResult.codeDiscount &&
+            discountResult.codeDiscount.codes &&
+            discountResult.codeDiscount.codes.nodes &&
+            discountResult.codeDiscount.codes.nodes.length > 0
+          ) {
+            discountCode = discountResult.codeDiscount.codes.nodes[0].code
+          }
+        } else {
+          // Parse discount value as a number (don't convert percentage to decimal)
+          const discountValue = Number.parseFloat(rawDiscountValue)
+
+          // Check for valid discount value
+          if (isNaN(discountValue)) {
+            throw new Error("Invalid discount value: " + rawDiscountValue)
+          }
+
+          // Create percentage or fixed amount discount code using existing function
+          const discountResult = await createGraphQLDiscountCode(shop, accessToken, {
+            title: `Welcome Discount for ${email}`,
+            code: discountCode,
+            startsAt: startDate,
+            endsAt: endDate,
+            discountType: rawDiscountType === "percentage" ? "percentage" : "fixed",
+            discountValue: rawDiscountType === "percentage" ? discountValue / 100 : discountValue, // Only convert to decimal if percentage
+            minimumSubtotal: minimumSubtotal,
+            usageLimit: 1000,
+            appliesOncePerCustomer: true,
+          })
+
+          // Extract the discount code from the response if available
+          if (
+            discountResult &&
+            discountResult.codeDiscount &&
+            discountResult.codeDiscount.codes &&
+            discountResult.codeDiscount.codes.nodes &&
+            discountResult.codeDiscount.codes.nodes.length > 0
+          ) {
+            discountCode = discountResult.codeDiscount.codes.nodes[0].code
+          }
         }
 
         discountCreated = true
@@ -428,7 +589,15 @@ export const action: ActionFunction = async ({ request }) => {
     } else if (manualDiscountEnabled && !noDiscountEnabled) {
       // If manual discount is enabled, use the manual discount code from config
       discountCode = discountConfig?.manual_discount?.manualDiscount || null
-      discountCreated = !!discountCode
+
+      // Only mark as created if we have a non-empty discount code
+      if (discountCode && discountCode.trim() !== "") {
+        discountCreated = true
+        console.log("Using manual discount code:", discountCode)
+      } else {
+        console.log("Manual discount enabled but no code provided")
+        discountCreated = false
+      }
     }
 
     // 🧠 Save email submission to DB regardless of discount creation
