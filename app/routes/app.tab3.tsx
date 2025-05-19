@@ -511,13 +511,17 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
         <Card>
           <BlockStack gap="400">
             {logoUrl ? (
-              <div style={{ padding: "16px" }}>
+              <div>
                 <InlineStack gap="400" align="center">
                   <Thumbnail source={logoUrl} alt="Logo" size="large" />
-                  <Button onClick={() => setLogoUrl("")} size="slim">
+                  
+                </InlineStack>
+                <div style={{display:"flex", justifyContent:"start", paddingTop:"10px"}}>
+                <Button onClick={() => setLogoUrl("")} size="slim">
+                    
                     Remove
                   </Button>
-                </InlineStack>
+                  </div>
               </div>
             ) : (
               <DropZone accept="image/*" type="image" outline={false} onDrop={handleLogoDrop} disabled={isUploading}>
@@ -593,13 +597,15 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
 
         <Card>
           {imageUrl ? (
-            <div style={{ padding: "16px" }}>
+            <div>
               <InlineStack gap="400" align="center">
                 <Thumbnail source={imageUrl} alt="Popup image" size="large" />
-                <Button onClick={() => setImageUrl("")} size="slim">
+                
+              </InlineStack>
+              <div style={{display:"flex",alignItems:"start",paddingTop:"10px"}}></div>
+              <Button onClick={() => setImageUrl("")} size="slim">
                   Remove
                 </Button>
-              </InlineStack>
             </div>
           ) : (
             <DropZone accept="image/*" type="image" outline={false} onDrop={handleImageDrop} disabled={isUploading}>
@@ -607,21 +613,6 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
             </DropZone>
           )}
         </Card>
-
-        {/* Added image width slider */}
-        {imageUrl && (
-          <BlockStack gap="200">
-            <RangeSlider
-              output
-              label="Image width"
-              min={10}
-              max={100}
-              value={imageWidth}
-              onChange={handleImageWidthChange}
-              suffix={<Text as="p">{imageWidth}%</Text>}
-            />
-          </BlockStack>
-        )}
       </BlockStack>
 
       <Divider />
