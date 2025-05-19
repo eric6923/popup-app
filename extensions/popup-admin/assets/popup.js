@@ -564,26 +564,37 @@ function renderPopup(content, style, rules) {
 
   // Determine border radius based on style with fallback
   let borderRadius = "0"
-  const cornerRadius = style?.display?.cornor_Radius || "Medium"
+  const cornerRadius = style?.display?.cornor_Radius || "Standard"
 
-  if (cornerRadius === "Small") {
+  if (cornerRadius === "Standard") {
     borderRadius = "4px"
-  } else if (cornerRadius === "Medium") {
-    borderRadius = "8px"
   } else if (cornerRadius === "Large") {
-    borderRadius = "12px"
+    borderRadius = "8px"
+  } else if (cornerRadius === "None") {
+    borderRadius = "0"
   }
 
   // Determine size with fallback
   const popupSize = style?.display?.size || "Standard"
-  const popupWidth = popupSize === "Standard" ? "450px" : "550px"
+  let popupWidth = "450px"
+
+  if (popupSize === "Small") {
+    popupWidth = "350px"
+  } else if (popupSize === "Standard") {
+    popupWidth = "450px"
+  } else if (popupSize === "Large") {
+    popupWidth = "550px"
+  }
 
   // Determine alignment with fallback
-  const textAlignment = style?.display?.alignment || "Left"
+  const textAlignment = style?.display?.alignment || "Center"
 
   // Determine layout with fallback
-  const layout = style?.layout || "Left"
+  const layout = style?.layout || "None"
   const hasImage = style?.image && style.image.length > 0
+
+  // Get image width from config or use default
+  const imageWidth = style?.imageWidth || 35
 
   // Check if discount is enabled or not
   const noDiscountEnabled = rules?.discount?.no_discount?.enabled === true
@@ -734,35 +745,39 @@ function renderPopup(content, style, rules) {
     // Side by side layout
     const imageOnLeft = layout === "Left"
 
+    // Apply alignment to content based on the alignment setting
+    const contentAlignment = textAlignment.toLowerCase()
+    const secondaryBtnAlignment = contentAlignment === "center" ? "center" : contentAlignment
+
     popupStructure = `
       <div id="popup-content" style="display: flex; flex-direction: ${imageOnLeft ? "row" : "row-reverse"};">
         ${
           hasImage
             ? `
-          <div style="flex: 1; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnLeft ? `${borderRadius} 0 0 ${borderRadius}` : `0 ${borderRadius} ${borderRadius} 0`};"></div>
+          <div style="flex: ${imageWidth / 100}; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnLeft ? `${borderRadius} 0 0 ${borderRadius}` : `0 ${borderRadius} ${borderRadius} 0`};"></div>
         `
             : ""
         }
-        <div style="flex: ${hasImage ? "1" : "1"}; padding: 30px 35px 25px;">
+        <div style="flex: ${hasImage ? (100 - imageWidth) / 100 : "1"}; padding: 30px 35px 25px;">
           <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
           cursor: pointer; font-size: 24px; color: #777;">×</button>
           
           ${
             style?.logo?.url
               ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "px" : "auto"};">
+            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
           </div>`
               : ""
           }
           
           <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
-          text-align: ${textAlignment};">
-            ${content?.Heading || "Get your discount"}
+          text-align: ${textAlignment.toLowerCase()};">
+            ${content?.Heading || "Get 10% OFF your order"}
           </h2>
           
           <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
-          text-align: ${textAlignment};">
-            ${content?.Description || "Sign up to receive your discount code."}
+          text-align: ${textAlignment.toLowerCase()};">
+            ${content?.Description || "Sign up and unlock your instant discount."}
           </p>
           
           <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
@@ -781,7 +796,7 @@ function renderPopup(content, style, rules) {
           
           ${
             content?.actions1?.secondary
-              ? `<div style="text-align: center; margin-top: 15px;">
+              ? `<div style="text-align: ${secondaryBtnAlignment}; margin-top: 15px;">
               <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
               cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
                 No, thanks
@@ -801,6 +816,10 @@ function renderPopup(content, style, rules) {
     // Top or Bottom layout
     const imageOnTop = layout === "Top"
 
+    // Apply alignment to content based on the alignment setting
+    const contentAlignment = textAlignment.toLowerCase()
+    const secondaryBtnAlignment = contentAlignment === "center" ? "center" : contentAlignment
+
     popupStructure = `
       <div id="popup-content" style="display: flex; flex-direction: ${imageOnTop ? "column" : "column-reverse"};">
         ${
@@ -817,19 +836,19 @@ function renderPopup(content, style, rules) {
           ${
             style?.logo?.url
               ? `<div style="text-align: center; margin-bottom: 20px;">
-            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "px" : "auto"};">
+            <img src="${style.logo.url}" alt="Logo" style="max-width: 100%; width: ${style.logo.width ? style.logo.width + "%" : "auto"};">
           </div>`
               : ""
           }
           
           <h2 style="margin-top: 0; margin-bottom: 15px; font-size: 28px; font-weight: 600; color: ${colors.heading}; 
-          text-align: ${textAlignment};">
-            ${content?.Heading || "Get your discount"}
+          text-align: ${textAlignment.toLowerCase()};">
+            ${content?.Heading || "Get 10% OFF your order"}
           </h2>
           
           <p style="margin-top: 0; margin-bottom: 25px; color: ${colors.description}; font-size: 16px; 
-          text-align: ${textAlignment};">
-            ${content?.Description || "Sign up to receive your discount code."}
+          text-align: ${textAlignment.toLowerCase()};">
+            ${content?.Description || "Sign up and unlock your instant discount."}
           </p>
           
           <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
@@ -848,7 +867,7 @@ function renderPopup(content, style, rules) {
           
           ${
             content?.actions1?.secondary
-              ? `<div style="text-align: center; margin-top: 15px;">
+              ? `<div style="text-align: ${secondaryBtnAlignment}; margin-top: 15px;">
               <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
               cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
                 No, thanks

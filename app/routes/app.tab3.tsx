@@ -68,12 +68,13 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
 
   // Initialize state from config if available
   const [logoUrl, setLogoUrl] = useState(config?.style?.logo?.url || "")
-  const [logoWidth, setLogoWidth] = useState(config?.style?.logo?.width || 47)
+  const [logoWidth, setLogoWidth] = useState(config?.style?.logo?.width || 35)
   const [size, setSize] = useState(config?.style?.display?.size || "Standard")
   const [alignment, setAlignment] = useState(config?.style?.display?.alignment || "Center")
   const [cornerRadius, setCornerRadius] = useState(config?.style?.display?.cornor_Radius || "Standard")
   const [imagePosition, setImagePosition] = useState(config?.style?.layout || "None")
   const [imageUrl, setImageUrl] = useState(config?.style?.image || "")
+  const [imageWidth, setImageWidth] = useState(config?.style?.imageWidth || 35) // Added for image width control
   const [cssCode, setCssCode] = useState(config?.style?.customCss || "")
   const [isUploading, setIsUploading] = useState(false)
 
@@ -283,6 +284,7 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
         },
         layout: imagePosition,
         image: imageUrl,
+        imageWidth: imageWidth, // Added image width to config
         colors: {
           popup: {
             backgroud: hsbToHex(popupBackground),
@@ -325,6 +327,7 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
     cornerRadius,
     imagePosition,
     imageUrl,
+    imageWidth, // Added to dependency array
     cssCode,
     popupBackground,
     headingColor,
@@ -350,6 +353,15 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
   const handleLogoWidthChange = useCallback(
     (value) => {
       setLogoWidth(value)
+      if (setHasUnsavedChanges) setHasUnsavedChanges(true)
+    },
+    [setHasUnsavedChanges],
+  )
+
+  // Added handler for image width
+  const handleImageWidthChange = useCallback(
+    (value) => {
+      setImageWidth(value)
       if (setHasUnsavedChanges) setHasUnsavedChanges(true)
     },
     [setHasUnsavedChanges],
@@ -464,9 +476,9 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
   ]
 
   const cornerRadiusOptions = [
+    { label: "None", value: "None" },
     { label: "Standard", value: "Standard" },
     { label: "Large", value: "Large" },
-    { label: "None", value: "None" },
   ]
 
   const imagePositionOptions = [
@@ -595,6 +607,21 @@ export default function Tab3({ config, setConfig, setHasUnsavedChanges }) {
             </DropZone>
           )}
         </Card>
+
+        {/* Added image width slider */}
+        {imageUrl && (
+          <BlockStack gap="200">
+            <RangeSlider
+              output
+              label="Image width"
+              min={10}
+              max={100}
+              value={imageWidth}
+              onChange={handleImageWidthChange}
+              suffix={<Text as="p">{imageWidth}%</Text>}
+            />
+          </BlockStack>
+        )}
       </BlockStack>
 
       <Divider />
