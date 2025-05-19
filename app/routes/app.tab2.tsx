@@ -1,17 +1,13 @@
+"use client"
 
-import { BlockStack, Button, Checkbox, InlineStack, Text, TextField } from "@shopify/polaris"
+import { BlockStack, Button, Checkbox, InlineStack, Text, TextField, Modal } from "@shopify/polaris"
 import { useState, useEffect } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
-import {
-  TextBoldIcon,
-  TextItalicIcon,
-  ListBulletedIcon,
-  LinkIcon
-} from '@shopify/polaris-icons';
+import { TextBoldIcon, TextItalicIcon, ListBulletedIcon, LinkIcon } from "@shopify/polaris-icons"
 
-function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
+function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
   // Initialize state from config
   const [nameChecked, setNameChecked] = useState(config?.content?.form?.fields?.name || false)
   const [emailChecked, setEmailChecked] = useState(config?.content?.form?.fields?.email || true)
@@ -60,19 +56,72 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
     config?.content?.errorTexts?.birthdayError || "Please enter valid birthday!",
   )
 
+  // Link modal states
+  const [linkModalActive, setLinkModalActive] = useState(false)
+  const [linkText, setLinkText] = useState("")
+  const [linkUrl, setLinkUrl] = useState("")
+  const [openInNewTab, setOpenInNewTab] = useState(false)
+  const [selectedRange, setSelectedRange] = useState<{ from: number; to: number } | null>(null)
+
+  // Custom Link extension with target support
+  const CustomLink = Link.configure({
+    openOnClick: false,
+    HTMLAttributes: {
+      class: "text-orange-500 underline",
+    },
+    // Add support for target attribute
+    parseHTML() {
+      return [
+        {
+          tag: 'a[href]:not([href *= "javascript:" i])',
+          getAttrs: (node) => {
+            if (typeof node === 'string') return {}
+            const element = node as HTMLElement
+            return { 
+              href: element.getAttribute('href'),
+              target: element.getAttribute('target')
+            }
+          }
+        }
+      ]
+    },
+    renderHTML({ HTMLAttributes }) {
+      return ['a', HTMLAttributes, 0]
+    },
+  })
+
   // TipTap editor for footer text
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
       }),
+      CustomLink,
     ],
     content: footerText,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       setFooterText(html)
       updateConfig("footer", "footerText", html)
+    },
+    // Ensure editor properly handles selection
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none",
+      },
+      handleDOMEvents: {
+        mousedown: (view, event) => {
+          // This helps with selection handling
+          return false
+        },
+      },
     },
   })
 
@@ -254,6 +303,106 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
     updateConfig("errorTexts", "birthdayError", value)
   }
 
+  // Link modal handlers
+  const handleLinkModalOpen = () => {
+    if (!editor) return
+
+    // Make sure editor is focused
+    editor.commands.focus()
+
+    const { from, to } = editor.state.selection
+    setSelectedRange({ from, to })
+
+    // Check if text is selected
+    const selectedText = editor.state.doc.textBetween(from, to, ' ')
+    
+    // Check if we're editing an existing link
+    const linkAttrs = editor.getAttributes('link')
+    
+    if (linkAttrs.href) {
+      // We're editing an existing link
+      setLinkText(selectedText)
+      setLinkUrl(linkAttrs.href)
+      setOpenInNewTab(linkAttrs.target === '_blank')
+    } else if (selectedText) {
+      // Text is selected, but no existing link
+      setLinkText(selectedText)
+      setLinkUrl('')
+      setOpenInNewTab(false)
+    } else {
+      // No text selected, no existing link
+      setLinkText('')
+      setLinkUrl('')
+      setOpenInNewTab(false)
+    }
+
+    setLinkModalActive(true)
+  }
+
+  const handleLinkModalClose = () => {
+    setLinkModalActive(false)
+    setLinkText('')
+    setLinkUrl('')
+    setOpenInNewTab(false)
+    setSelectedRange(null)
+  }
+
+  const handleLinkSave = () => {
+    if (!editor || !selectedRange) return
+
+    // If URL is empty, remove the link
+    if (!linkUrl.trim()) {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      handleLinkModalClose()
+      return
+    }
+
+    // Prepare link attributes
+    const attrs = { 
+      href: linkUrl,
+      target: openInNewTab ? '_blank' : null,
+      rel: openInNewTab ? 'noopener noreferrer' : null
+    }
+
+    // If text was selected, update the link on that text
+    if (selectedRange.from !== selectedRange.to) {
+      // If the link text has changed, we need to delete the selection and insert new text
+      const selectedText = editor.state.doc.textBetween(selectedRange.from, selectedRange.to, ' ')
+      
+      if (selectedText !== linkText && linkText.trim()) {
+        // Delete the selected text
+        editor.chain().focus().deleteRange(selectedRange).run()
+        
+        // Insert the new text with link
+        editor.chain().focus()
+          .insertContent({
+            type: 'text',
+            text: linkText,
+            marks: [{ type: 'link', attrs }]
+          })
+          .run()
+      } else {
+        // Just update the link on the selected text
+        editor.chain().focus()
+          .setTextSelection(selectedRange)
+          .extendMarkRange('link')
+          .setLink(attrs)
+          .run()
+      }
+    } else {
+      // No text was selected, insert new text with link
+      editor.chain().focus()
+        .insertContent({
+          type: 'text',
+          text: linkText,
+          marks: [{ type: 'link', attrs }]
+        })
+        .run()
+    }
+
+    handleLinkModalClose()
+  }
+
   // Edit button component
   const EditButton = () => (
     <Button plain monochrome textDecoration="underline" onClick={() => console.log("Edit clicked")}>
@@ -264,7 +413,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
   )
 
   // Row with label and edit button
-  const RowWithEdit = ({ label, checked, onChange }:any) => (
+  const RowWithEdit = ({ label, checked, onChange }: any) => (
     <div
       style={{
         display: "flex",
@@ -280,41 +429,63 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
   )
 
   // TipTap toolbar buttons
-  const MenuBar = ({ editor }:any) => {
+  const MenuBar = ({ editor }: any) => {
     if (!editor) {
       return null
     }
 
+    // Focus the editor when any button is clicked to ensure single-click operation
+    const focusEditorAndRun = (callback) => {
+      // If editor is not already focused, focus it first
+      if (!editor.isFocused) {
+        editor.commands.focus()
+      }
+      // Then run the callback
+      callback()
+    }
+
     return (
       <InlineStack gap="200">
-        <Button size="slim" pressed={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}
-          icon={TextBoldIcon}>
-      
-        </Button>
+        <Button
+          size="slim"
+          pressed={editor.isActive("bold")}
+          onClick={() => focusEditorAndRun(() => editor.chain().toggleBold().run())}
+          icon={TextBoldIcon}
+        />
         <Button
           size="slim"
           pressed={editor.isActive("italic")}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          onClick={() => focusEditorAndRun(() => editor.chain().toggleItalic().run())}
           icon={TextItalicIcon}
-        >
-        
-        </Button>
-        <Button
-          pressed={editor.isActive("bulletList")}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          icon={<ListBulletedIcon />}
         />
         <Button
-          pressed={editor.isActive("link")}
+          size="slim"
+          pressed={editor.isActive("bulletList")}
           onClick={() => {
-            const url = window.prompt("URL")
-            if (url) {
-              editor.chain().focus().setLink({ href: url }).run()
-            } else {
-              editor.chain().focus().unsetLink().run()
-            }
+            focusEditorAndRun(() => {
+              // For bullet lists, we need to handle selection differently
+              // First check if we have a selection
+              const { empty } = editor.state.selection
+
+              if (!empty) {
+                // If text is selected, we need to preserve that selection when toggling
+                const { from, to } = editor.state.selection
+                editor.chain().toggleBulletList().run()
+                // Ensure selection is maintained after toggling
+                editor.commands.setTextSelection({ from, to })
+              } else {
+                // No selection, just toggle the bullet list
+                editor.chain().toggleBulletList().run()
+              }
+            })
           }}
-          icon={<LinkIcon/>}
+          icon={ListBulletedIcon}
+        />
+        <Button
+          size="slim"
+          pressed={editor.isActive("link")}
+          onClick={handleLinkModalOpen}
+          icon={LinkIcon}
         />
       </InlineStack>
     )
@@ -409,9 +580,60 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
           >
             {editor && <MenuBar editor={editor} />}
           </div>
-          <EditorContent editor={editor} />
+          <div style={{ height: "100px", overflow: "auto" }}>
+            <EditorContent
+              editor={editor}
+              onClick={() => {
+                if (editor && !editor.isFocused) {
+                  editor.commands.focus()
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Link Modal */}
+      <Modal
+        open={linkModalActive}
+        onClose={handleLinkModalClose}
+        title="Insert Link"
+        primaryAction={{
+          content: 'Save',
+          onAction: handleLinkSave,
+          disabled: !linkUrl.trim() || !linkText.trim(),
+        }}
+        secondaryActions={[
+          {
+            content: 'Cancel',
+            onAction: handleLinkModalClose,
+          },
+        ]}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <TextField
+              label="Text"
+              value={linkText}
+              onChange={setLinkText}
+              autoComplete="off"
+              placeholder="Link text to display"
+            />
+            <TextField
+              label="URL"
+              value={linkUrl}
+              onChange={setLinkUrl}
+              autoComplete="off"
+              placeholder="https://example.com"
+            />
+            <Checkbox
+              label="Open link in new tab"
+              checked={openInNewTab}
+              onChange={setOpenInNewTab}
+            />
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
 
       {/* Success status */}
       <div style={{ marginTop: "16px" }}>
@@ -436,7 +658,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
           </Text>
           <div style={{ marginTop: "8px" }}>
             <TextField
-            label=""
+              label=""
               value={successDescription}
               onChange={handleSuccessDescriptionChange}
               multiline={3}
@@ -552,6 +774,17 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }:any) {
           </div>
         </div>
       </div>
+      <style>
+        {`
+    .ProseMirror {
+      height: 100%;
+      min-height: 100px;
+      overflow: auto;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+  `}
+      </style>
     </BlockStack>
   )
 }

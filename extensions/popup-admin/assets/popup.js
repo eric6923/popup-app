@@ -667,11 +667,15 @@ function renderPopup(content, style, rules) {
               </div>
             </div>
             
-            <button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
-            color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
-            font-weight: 400; font-size: 16px;">
-              ${buttonText}
-            </button>
+            ${
+              content?.actions1?.primary
+                ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+                color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
+                font-weight: 400; font-size: 16px;">
+                  ${buttonText}
+                </button>`
+                : ""
+            }
           </form>
           
           ${
@@ -750,11 +754,15 @@ function renderPopup(content, style, rules) {
               </div>
             </div>
             
-            <button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
+            ${
+              content?.actions1?.primary
+                ? `<button type="submit" style="width: 100%; padding: 14px; background: ${colors.primaryBtnBg}; 
             color: ${colors.primaryBtnText}; border: none; border-radius: ${borderRadius}; cursor: pointer; 
             font-weight: 400; font-size: 16px;">
               ${buttonText}
-            </button>
+            </button>`
+                : ""
+            }
           </form>
           
           ${

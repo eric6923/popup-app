@@ -49,7 +49,11 @@ const defaultPopupConfig = {
     form: {
       fields: {
         name: false,
-        email: true
+        email: true,
+        phone:false,
+        birthday:false,
+        marketingconsent:false,
+        smsconsent:false
       }
     },
     actions1: {
