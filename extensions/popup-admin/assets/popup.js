@@ -268,7 +268,8 @@ function showPopup(config) {
 
     if (triggerType === "TIMER") {
       const timerOption = rules.trigger.timerOption || {}
-      const delayType = timerOption.delayType || "AFTER_DELAY"
+      const delayOption = timerOption.delayOption || {} // Declare delayOption here
+      const delayType = delayOption.delayType || "AFTER_DELAY"
       const delay = delayType === "IMMEDIATELY" ? 0 : (timerOption.delaySeconds || 3) * 1000
 
       setTimeout(() => {
@@ -485,7 +486,7 @@ function setupSidebarWidget(content, style) {
   const widgetHTML = `
     <div id="sidebar-widget" style="position: fixed; left: 0; top: 50%; transform: translateY(-50%); 
     background-color: ${colors.background}; color: ${colors.text}; 
-    padding: 16px 8px; border-radius: 0 4px 4px 0; cursor: pointer; z-index: 9997; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
+    padding: 16px 8px 25px; border-radius: 0 4px 4px 0; cursor: pointer; z-index: 9997; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
       <div style="writing-mode: vertical-rl; transform: rotate(180deg); text-orientation: mixed; white-space: nowrap; font-size: 14px; font-weight: 500; letter-spacing: 1px;">
         ${(() => {
           const discountType =
@@ -566,12 +567,12 @@ function renderPopup(content, style, rules) {
   let borderRadius = "0"
   const cornerRadius = style?.display?.cornor_Radius || "Standard"
 
-  if (cornerRadius === "Standard") {
+  if (cornerRadius === "None") {
+    borderRadius = "0"
+  } else if (cornerRadius === "Standard") {
     borderRadius = "4px"
   } else if (cornerRadius === "Large") {
     borderRadius = "8px"
-  } else if (cornerRadius === "None") {
-    borderRadius = "0"
   }
 
   // Determine size with fallback
@@ -579,7 +580,7 @@ function renderPopup(content, style, rules) {
   let popupWidth = "450px"
 
   if (popupSize === "Small") {
-    popupWidth = "350px"
+    popupWidth = "400px"
   } else if (popupSize === "Standard") {
     popupWidth = "450px"
   } else if (popupSize === "Large") {
@@ -588,10 +589,6 @@ function renderPopup(content, style, rules) {
 
   // Determine alignment with fallback
   const textAlignment = style?.display?.alignment || "Center"
-
-  // Determine layout with fallback
-  const layout = style?.layout || "None"
-  const hasImage = style?.image && style.image.length > 0
 
   // Get image width from config or use default
   const imageWidth = style?.imageWidth || 35
@@ -740,6 +737,8 @@ function renderPopup(content, style, rules) {
 
   // Create the popup HTML structure based on layout
   let popupStructure = ""
+  const layout = style?.layout || "None"
+  const hasImage = style?.image !== undefined // Declare hasImage here
 
   if (layout === "Left" || layout === "Right") {
     // Side by side layout
@@ -754,11 +753,11 @@ function renderPopup(content, style, rules) {
         ${
           hasImage
             ? `
-          <div style="flex: ${imageWidth / 100}; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnLeft ? `${borderRadius} 0 0 ${borderRadius}` : `0 ${borderRadius} ${borderRadius} 0`};"></div>
+          <div style="flex: 0 0 ${imageWidth}%; background-image: url('${style.image}'); background-size: cover; background-position: center; border-radius: ${imageOnLeft ? `${borderRadius} 0 0 ${borderRadius}` : `0 ${borderRadius} ${borderRadius} 0`};"></div>
         `
             : ""
         }
-        <div style="flex: ${hasImage ? (100 - imageWidth) / 100 : "1"}; padding: 30px 35px 25px;">
+        <div style="flex: 1 1 ${hasImage ? `${100 - imageWidth}%` : "100%"}; padding: 30px 35px 25px;">
           <button id="close-popup" style="position: absolute; top: 10px; right: 12px; background: none; border: none; 
           cursor: pointer; font-size: 24px; color: #777;">×</button>
           
@@ -796,10 +795,10 @@ function renderPopup(content, style, rules) {
           
           ${
             content?.actions1?.secondary
-              ? `<div style="text-align: ${secondaryBtnAlignment}; margin-top: 15px;">
+              ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
               <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
               cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
-                No, thanks
+                ${content?.actions1?.secondaryButtonText || "No, thanks"}
               </button>
             </div>`
               : ""
@@ -867,10 +866,10 @@ function renderPopup(content, style, rules) {
           
           ${
             content?.actions1?.secondary
-              ? `<div style="text-align: ${secondaryBtnAlignment}; margin-top: 15px;">
+              ? `<div style="text-align: ${textAlignment.toLowerCase()}; margin-top: 15px;">
               <button id="no-thanks" style="background: none; border: none; color: ${colors.secondaryBtnText}; 
               cursor: pointer; padding: 5px; font-size: 16px; text-decoration: none;">
-                No, thanks
+                ${content?.actions1?.secondaryButtonText || "No, thanks"}
               </button>
             </div>`
               : ""
