@@ -1,6 +1,6 @@
 "use client"
 
-import { BlockStack, Button, Checkbox, InlineStack, Text, TextField, Modal } from "@shopify/polaris"
+import { BlockStack, Button, Checkbox, InlineStack, Text, TextField, Modal, ActionList } from "@shopify/polaris"
 import { useState, useEffect } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -56,6 +56,15 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     config?.content?.errorTexts?.birthdayError || "Please enter valid birthday!",
   )
 
+  // Add after the existing state declarations
+  const [phoneChecked, setPhoneChecked] = useState(config?.content?.form?.fields?.phone || false)
+  const [birthdayChecked, setBirthdayChecked] = useState(config?.content?.form?.fields?.birthday || false)
+  const [marketingConsentChecked, setMarketingConsentChecked] = useState(
+    config?.content?.form?.fields?.marketingconsent || false,
+  )
+  const [smsConsentChecked, setSmsConsentChecked] = useState(config?.content?.form?.fields?.smsconsent || false)
+  const [addFieldPopoverActive, setAddFieldPopoverActive] = useState(false)
+
   // Link modal states
   const [linkModalActive, setLinkModalActive] = useState(false)
   const [linkText, setLinkText] = useState("")
@@ -75,18 +84,18 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
         {
           tag: 'a[href]:not([href *= "javascript:" i])',
           getAttrs: (node) => {
-            if (typeof node === 'string') return {}
+            if (typeof node === "string") return {}
             const element = node as HTMLElement
-            return { 
-              href: element.getAttribute('href'),
-              target: element.getAttribute('target')
+            return {
+              href: element.getAttribute("href"),
+              target: element.getAttribute("target"),
             }
-          }
-        }
+          },
+        },
       ]
     },
     renderHTML({ HTMLAttributes }) {
-      return ['a', HTMLAttributes, 0]
+      return ["a", HTMLAttributes, 0]
     },
   })
 
@@ -166,6 +175,10 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
           fields: {
             name: nameChecked,
             email: emailChecked,
+            phone: phoneChecked,
+            birthday: birthdayChecked,
+            marketingconsent: marketingConsentChecked,
+            smsconsent: smsConsentChecked,
           },
         },
         actions1: {
@@ -303,6 +316,53 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     updateConfig("errorTexts", "birthdayError", value)
   }
 
+  // Add after the existing handler functions
+  const handlePhoneCheckedChange = (checked) => {
+    setPhoneChecked(checked)
+    updateConfig("form", "fields", { ...config?.content?.form?.fields, phone: checked })
+  }
+
+  const handleBirthdayCheckedChange = (checked) => {
+    setBirthdayChecked(checked)
+    updateConfig("form", "fields", { ...config?.content?.form?.fields, birthday: checked })
+  }
+
+  const handleMarketingConsentCheckedChange = (checked) => {
+    setMarketingConsentChecked(checked)
+    updateConfig("form", "fields", { ...config?.content?.form?.fields, marketingconsent: checked })
+  }
+
+  const handleSmsConsentCheckedChange = (checked) => {
+    setSmsConsentChecked(checked)
+    updateConfig("form", "fields", { ...config?.content?.form?.fields, smsconsent: checked })
+  }
+
+  const toggleAddFieldPopover = () => {
+    setAddFieldPopoverActive(!addFieldPopoverActive)
+  }
+
+  const handleAddField = (field) => {
+    switch (field) {
+      case "phone":
+        setPhoneChecked(true)
+        updateConfig("form", "fields", { ...config?.content?.form?.fields, phone: true })
+        break
+      case "birthday":
+        setBirthdayChecked(true)
+        updateConfig("form", "fields", { ...config?.content?.form?.fields, birthday: true })
+        break
+      case "marketingconsent":
+        setMarketingConsentChecked(true)
+        updateConfig("form", "fields", { ...config?.content?.form?.fields, marketingconsent: true })
+        break
+      case "smsconsent":
+        setSmsConsentChecked(true)
+        updateConfig("form", "fields", { ...config?.content?.form?.fields, smsconsent: true })
+        break
+    }
+    setAddFieldPopoverActive(false)
+  }
+
   // Link modal handlers
   const handleLinkModalOpen = () => {
     if (!editor) return
@@ -314,25 +374,25 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     setSelectedRange({ from, to })
 
     // Check if text is selected
-    const selectedText = editor.state.doc.textBetween(from, to, ' ')
-    
+    const selectedText = editor.state.doc.textBetween(from, to, " ")
+
     // Check if we're editing an existing link
-    const linkAttrs = editor.getAttributes('link')
-    
+    const linkAttrs = editor.getAttributes("link")
+
     if (linkAttrs.href) {
       // We're editing an existing link
       setLinkText(selectedText)
       setLinkUrl(linkAttrs.href)
-      setOpenInNewTab(linkAttrs.target === '_blank')
+      setOpenInNewTab(linkAttrs.target === "_blank")
     } else if (selectedText) {
       // Text is selected, but no existing link
       setLinkText(selectedText)
-      setLinkUrl('')
+      setLinkUrl("")
       setOpenInNewTab(false)
     } else {
       // No text selected, no existing link
-      setLinkText('')
-      setLinkUrl('')
+      setLinkText("")
+      setLinkUrl("")
       setOpenInNewTab(false)
     }
 
@@ -341,8 +401,8 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
 
   const handleLinkModalClose = () => {
     setLinkModalActive(false)
-    setLinkText('')
-    setLinkUrl('')
+    setLinkText("")
+    setLinkUrl("")
     setOpenInNewTab(false)
     setSelectedRange(null)
   }
@@ -352,50 +412,50 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
 
     // If URL is empty, remove the link
     if (!linkUrl.trim()) {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      editor.chain().focus().extendMarkRange("link").unsetLink().run()
       handleLinkModalClose()
       return
     }
 
     // Prepare link attributes
-    const attrs = { 
+    const attrs = {
       href: linkUrl,
-      target: openInNewTab ? '_blank' : null,
-      rel: openInNewTab ? 'noopener noreferrer' : null
+      target: openInNewTab ? "_blank" : null,
+      rel: openInNewTab ? "noopener noreferrer" : null,
     }
 
     // If text was selected, update the link on that text
     if (selectedRange.from !== selectedRange.to) {
       // If the link text has changed, we need to delete the selection and insert new text
-      const selectedText = editor.state.doc.textBetween(selectedRange.from, selectedRange.to, ' ')
-      
+      const selectedText = editor.state.doc.textBetween(selectedRange.from, selectedRange.to, " ")
+
       if (selectedText !== linkText && linkText.trim()) {
         // Delete the selected text
         editor.chain().focus().deleteRange(selectedRange).run()
-        
+
         // Insert the new text with link
-        editor.chain().focus()
+        editor
+          .chain()
+          .focus()
           .insertContent({
-            type: 'text',
+            type: "text",
             text: linkText,
-            marks: [{ type: 'link', attrs }]
+            marks: [{ type: "link", attrs }],
           })
           .run()
       } else {
         // Just update the link on the selected text
-        editor.chain().focus()
-          .setTextSelection(selectedRange)
-          .extendMarkRange('link')
-          .setLink(attrs)
-          .run()
+        editor.chain().focus().setTextSelection(selectedRange).extendMarkRange("link").setLink(attrs).run()
       }
     } else {
       // No text was selected, insert new text with link
-      editor.chain().focus()
+      editor
+        .chain()
+        .focus()
         .insertContent({
-          type: 'text',
+          type: "text",
           text: linkText,
-          marks: [{ type: 'link', attrs }]
+          marks: [{ type: "link", attrs }],
         })
         .run()
     }
@@ -481,15 +541,27 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
           }}
           icon={ListBulletedIcon}
         />
-        <Button
-          size="slim"
-          pressed={editor.isActive("link")}
-          onClick={handleLinkModalOpen}
-          icon={LinkIcon}
-        />
+        <Button size="slim" pressed={editor.isActive("link")} onClick={handleLinkModalOpen} icon={LinkIcon} />
       </InlineStack>
     )
   }
+
+  // Add this near the other useEffect hooks
+  useEffect(() => {
+    if (addFieldPopoverActive) {
+      const handleClickOutside = (event) => {
+        // Check if the click is outside the popover
+        if (event.target.closest("[data-add-field-popover]") === null) {
+          setAddFieldPopoverActive(false)
+        }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [addFieldPopoverActive])
 
   return (
     <BlockStack gap="100">
@@ -534,10 +606,77 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
 
           <RowWithEdit label="Email address" checked={emailChecked} onChange={handleEmailCheckedChange} />
 
-          <div style={{ marginTop: "16px" }}>
-            <Button fullWidth outline icon={<span style={{ marginRight: "4px", fontSize: "18px" }}>+</span>}>
+          {phoneChecked && <RowWithEdit label="Phone" checked={phoneChecked} onChange={handlePhoneCheckedChange} />}
+
+          {birthdayChecked && (
+            <RowWithEdit label="Birthday" checked={birthdayChecked} onChange={handleBirthdayCheckedChange} />
+          )}
+
+          {marketingConsentChecked && (
+            <RowWithEdit
+              label="Marketing Consent"
+              checked={marketingConsentChecked}
+              onChange={handleMarketingConsentCheckedChange}
+            />
+          )}
+
+          {smsConsentChecked && (
+            <RowWithEdit label="SMS Consent" checked={smsConsentChecked} onChange={handleSmsConsentCheckedChange} />
+          )}
+
+          <div style={{ marginTop: "16px", position: "relative" }}>
+            <Button
+              fullWidth
+              outline
+              icon={<span style={{ marginRight: "4px", fontSize: "18px" }}>+</span>}
+              onClick={toggleAddFieldPopover}
+            >
               Add form field
             </Button>
+
+            {addFieldPopoverActive && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  width: "100%",
+                  backgroundColor: "white",
+                  borderRadius: "4px",
+                  boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+                  zIndex: 9999,
+                  marginTop: "4px",
+                  border: "1px solid #dde0e4",
+                }}
+                data-add-field-popover
+              >
+                <ActionList
+                  actionRole="menuitem"
+                  items={[
+                    {
+                      content: "Phone",
+                      onAction: () => handleAddField("phone"),
+                      disabled: phoneChecked,
+                    },
+                    {
+                      content: "Birthday",
+                      onAction: () => handleAddField("birthday"),
+                      disabled: birthdayChecked,
+                    },
+                    {
+                      content: "Marketing Consent",
+                      onAction: () => handleAddField("marketingconsent"),
+                      disabled: marketingConsentChecked,
+                    },
+                    {
+                      content: "SMS Consent",
+                      onAction: () => handleAddField("smsconsent"),
+                      disabled: smsConsentChecked,
+                    },
+                  ].filter((item) => !item.disabled)}
+                />
+              </div>
+            )}
           </div>
         </BlockStack>
       </div>
@@ -599,13 +738,13 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
         onClose={handleLinkModalClose}
         title="Insert Link"
         primaryAction={{
-          content: 'Save',
+          content: "Save",
           onAction: handleLinkSave,
           disabled: !linkUrl.trim() || !linkText.trim(),
         }}
         secondaryActions={[
           {
-            content: 'Cancel',
+            content: "Cancel",
             onAction: handleLinkModalClose,
           },
         ]}
@@ -626,11 +765,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
               autoComplete="off"
               placeholder="https://example.com"
             />
-            <Checkbox
-              label="Open link in new tab"
-              checked={openInNewTab}
-              onChange={setOpenInNewTab}
-            />
+            <Checkbox label="Open link in new tab" checked={openInNewTab} onChange={setOpenInNewTab} />
           </BlockStack>
         </Modal.Section>
       </Modal>

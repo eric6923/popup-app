@@ -816,6 +816,34 @@ function renderPopup(content, style, rules) {
       name = nameInput.value.trim()
     }
 
+    // Get phone if phone field exists
+    const phoneInput = document.getElementById("popup-phone")
+    let phone = ""
+    if (phoneInput) {
+      phone = phoneInput.value.trim()
+    }
+
+    // Get birthday if birthday field exists
+    const birthdayInput = document.getElementById("popup-birthday")
+    let birthday = ""
+    if (birthdayInput) {
+      birthday = birthdayInput.value.trim()
+    }
+
+    // Get marketing consent if field exists
+    const marketingConsentInput = document.getElementById("popup-marketing-consent")
+    let marketingConsent = false
+    if (marketingConsentInput) {
+      marketingConsent = marketingConsentInput.checked
+    }
+
+    // Get SMS consent if field exists
+    const smsConsentInput = document.getElementById("popup-sms-consent")
+    let smsConsent = false
+    if (smsConsentInput) {
+      smsConsent = smsConsentInput.checked
+    }
+
     // Validate form using only the error texts from configuration
     let hasErrors = false
 
@@ -847,6 +875,26 @@ function renderPopup(content, style, rules) {
       }
     }
 
+    // Phone validation (if phone field exists and required)
+    if (phoneInput && content?.form?.phoneRequired && !phone) {
+      const phoneError = document.getElementById("phone-error")
+      if (phoneError) {
+        phoneError.textContent = content?.errorTexts?.phone || "Please enter your phone number!"
+        phoneError.style.display = "block"
+        hasErrors = true
+      }
+    }
+
+    // Birthday validation (if birthday field exists and required)
+    if (birthdayInput && content?.form?.birthdayRequired && !birthday) {
+      const birthdayError = document.getElementById("birthday-error")
+      if (birthdayError) {
+        birthdayError.textContent = content?.errorTexts?.birthday || "Please enter your birthday!"
+        birthdayError.style.display = "block"
+        hasErrors = true
+      }
+    }
+
     if (hasErrors) {
       return
     }
@@ -868,7 +916,14 @@ function renderPopup(content, style, rules) {
       const response = await fetch(`/apps/popup?shop=${encodeURIComponent(shop)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({
+          email,
+          name,
+          phone,
+          birthday,
+          marketingConsent,
+          smsConsent,
+        }),
       })
 
       // Parse the response JSON
