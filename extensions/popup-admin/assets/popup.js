@@ -350,7 +350,15 @@ function setupStickyDiscountBar(content, style, discountCode = null) {
               window.popupConfig?.rules?.discount?.discount_code?.discountValue ||
               "10"
 
-            const discountText = discountType === "fixed" ? `$${discountValue} OFF` : `${discountValue}% OFF`
+            let discountText = ""
+            if (discountType === "free-shipping") {
+              discountText = "FREE SHIPPING"
+            } else if (discountType === "fixed") {
+              discountText = `$${discountValue} OFF`
+            } else {
+              discountText = `${discountValue}% OFF`
+            }
+
             return content?.stickydiscountbar?.description || `Don't forget to use your ${discountText} discount code`
           })()}
         </span>
@@ -489,7 +497,15 @@ function setupSidebarWidget(content, style) {
             window.popupConfig?.rules?.discount?.discount_code?.discountValue ||
             "10"
 
-          const defaultText = discountType === "fixed" ? `Get $${discountValue} OFF` : `Get ${discountValue}% OFF`
+          let defaultText = ""
+          if (discountType === "free-shipping") {
+            defaultText = "Get FREE SHIPPING"
+          } else if (discountType === "fixed") {
+            defaultText = `Get $${discountValue} OFF`
+          } else {
+            defaultText = `Get ${discountValue}% OFF`
+          }
+
           return content?.sidebarWidget?.["btn-text"] || defaultText
         })()}
       </div>
@@ -628,26 +644,26 @@ function renderPopup(content, style, rules) {
             ${content?.Description || "Sign up to receive your discount code."}
           </p>
           
-          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;">
+          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
             ${
               content?.form?.fields?.name
                 ? `<div>
-                <input type="text" id="popup-name" placeholder="Your name" required 
+                <input type="text" id="popup-name" placeholder="Your name" 
                 style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
                 font-size: 16px; box-sizing: border-box; color: ${colors.input};">
                 <div id="name-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                  ${content?.errorTexts?.firstName || "Please enter your name"}
+                  ${content?.errorTexts?.firstName || "Please enter your first name!"}
                 </div>
               </div>`
                 : ""
             }
             
             <div>
-              <input type="email" id="popup-email" placeholder="Email address" required 
+              <input type="email" id="popup-email" placeholder="Email address" 
               style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
               font-size: 16px; box-sizing: border-box; color: ${colors.input};">
               <div id="email-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                ${content?.errorTexts?.email || "Please enter a valid email address"}
+                ${content?.errorTexts?.email || "Please enter your email address!"}
               </div>
             </div>
             
@@ -711,26 +727,26 @@ function renderPopup(content, style, rules) {
             ${content?.Description || "Sign up to receive your discount code."}
           </p>
           
-          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;">
+          <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
             ${
               content?.form?.fields?.name
                 ? `<div>
-                <input type="text" id="popup-name" placeholder="Your name" required 
+                <input type="text" id="popup-name" placeholder="Your name" 
                 style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
                 font-size: 16px; box-sizing: border-box; color: ${colors.input};">
                 <div id="name-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                  ${content?.errorTexts?.firstName || "Please enter your name"}
+                  ${content?.errorTexts?.firstName || "Please enter your first name!"}
                 </div>
               </div>`
                 : ""
             }
             
             <div>
-              <input type="email" id="popup-email" placeholder="Email address" required 
+              <input type="email" id="popup-email" placeholder="Email address" 
               style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
               font-size: 16px; box-sizing: border-box; color: ${colors.input};">
               <div id="email-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                ${content?.errorTexts?.email || "Please enter a valid email address"}
+                ${content?.errorTexts?.email || "Please enter your email address!"}
               </div>
             </div>
             
@@ -781,40 +797,45 @@ function renderPopup(content, style, rules) {
       el.style.display = "none"
     })
 
-    // Validate form
-    let hasErrors = false
-
+    // Get form values
     const emailInput = document.getElementById("popup-email")
     const email = emailInput.value.trim()
 
+    // Get name if name field exists
+    const nameInput = document.getElementById("popup-name")
+    let name = ""
+    if (nameInput) {
+      name = nameInput.value.trim()
+    }
+
+    // Validate form using only the error texts from configuration
+    let hasErrors = false
+
+    // Email validation
     if (!email) {
       const emailError = document.getElementById("email-error")
       if (emailError) {
-        emailError.textContent = content?.errorTexts?.emailEmpty || "Please enter your email address"
+        emailError.textContent = content?.errorTexts?.email || "Please enter your email address!"
         emailError.style.display = "block"
         hasErrors = true
       }
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       const emailError = document.getElementById("email-error")
       if (emailError) {
-        emailError.textContent = content?.errorTexts?.emailInvalid || "Please enter a valid email address"
+        emailError.textContent =
+          content?.errorTexts?.emailInvalid || content?.errorTexts?.email || "Please enter your email address!"
         emailError.style.display = "block"
         hasErrors = true
       }
     }
 
-    const nameInput = document.getElementById("popup-name")
-    let name = ""
-
-    if (nameInput) {
-      name = nameInput.value.trim()
-      if (!name) {
-        const nameError = document.getElementById("name-error")
-        if (nameError) {
-          nameError.textContent = content?.errorTexts?.firstName || "Please enter your name"
-          nameError.style.display = "block"
-          hasErrors = true
-        }
+    // Name validation (if name field exists)
+    if (nameInput && !name) {
+      const nameError = document.getElementById("name-error")
+      if (nameError) {
+        nameError.textContent = content?.errorTexts?.firstName || "Please enter your first name!"
+        nameError.style.display = "block"
+        hasErrors = true
       }
     }
 
@@ -853,7 +874,24 @@ function renderPopup(content, style, rules) {
 
       // Check if the response was successful
       if (!response.ok) {
-        throw new Error(data.error || data.details || `Server error: ${response.status}`)
+        // Use error text from the configuration if available
+        let errorMessage = data.error || data.details || `Server error: ${response.status}`
+
+        // Map error types to user-friendly messages from content config
+        if (data.errorType === "EMAIL_EMPTY") {
+          errorMessage = content?.errorTexts?.email || "Please enter your email address!"
+        } else if (data.errorType === "EMAIL_INVALID") {
+          errorMessage =
+            content?.errorTexts?.emailInvalid || content?.errorTexts?.email || "Please enter your email address!"
+        } else if (data.errorType === "EMAIL_EXISTS") {
+          errorMessage = content?.errorTexts?.alreadySubscribed || "You have already subscribed!"
+        } else if (data.errorType === "DISCOUNT_ERROR") {
+          errorMessage = content?.errorTexts?.submitError || "Sorry, please try again later!"
+        } else {
+          errorMessage = content?.errorTexts?.submitError || "Sorry, please try again later!"
+        }
+
+        throw new Error(errorMessage)
       }
 
       // Check if the response indicates success
@@ -893,7 +931,14 @@ function renderPopup(content, style, rules) {
         "10"
 
       // Format discount text based on type
-      const discountText = discountType === "fixed" ? `$${discountValue}` : `${discountValue}%`
+      let discountText = ""
+      if (discountType === "free-shipping") {
+        discountText = "FREE SHIPPING"
+      } else if (discountType === "fixed") {
+        discountText = `$${discountValue}`
+      } else {
+        discountText = `${discountValue}%`
+      }
 
       // Determine success message based on whether discount was created and its type
       const successHeading = hasDiscount
@@ -1020,14 +1065,19 @@ function renderPopup(content, style, rules) {
       // Show error message
       const formElement = document.getElementById("email-form")
       if (formElement) {
-        const errorDiv = document.createElement("div")
-        errorDiv.style.color = colors.error
-        errorDiv.style.marginTop = "10px"
-        errorDiv.style.textAlign = "center"
-        errorDiv.textContent =
-          error.message || content?.errorTexts?.submitError || "Something went wrong. Please try again."
+        // Create error message element if it doesn't exist
+        let errorDiv = formElement.querySelector(".form-error-message")
+        if (!errorDiv) {
+          errorDiv = document.createElement("div")
+          errorDiv.className = "form-error-message"
+          errorDiv.style.color = colors.error
+          errorDiv.style.marginTop = "10px"
+          errorDiv.style.textAlign = "center"
+          formElement.appendChild(errorDiv)
+        }
 
-        formElement.appendChild(errorDiv)
+        // Set error message from configuration if possible
+        errorDiv.textContent = error.message || content?.errorTexts?.submitError || "Sorry, please try again later!"
       }
 
       // Reset button
