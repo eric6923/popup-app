@@ -2,6 +2,7 @@ import type { LoaderFunction, ActionFunction } from "@remix-run/node"
 import { json } from "@remix-run/node"
 import { prisma } from "../lib/prisma.server"
 import { getPopupsByStore } from "../services/popup.server"
+import { getStoreLocations, shouldShowByLocation } from "../services/location.server"
 
 /**
  * Checks if a popup is valid based on its scheduling configuration
@@ -382,6 +383,32 @@ export const loader: LoaderFunction = async ({ request }) => {
       })
     }
 
+    // Check location rules if they exist
+    if (config?.rules?.location_rules && config.rules.location_rules.type !== "ANY") {
+      // Get store locations from Shopify
+      const locationData = await getStoreLocations(shop, store.accessToken)
+
+      if (!locationData.success) {
+        console.error("Failed to fetch store locations:", locationData.error)
+        // Continue without location filtering if we can't get locations
+      } else {
+        // Check if the popup should be shown based on location rules
+        const shouldShowForLocation = shouldShowByLocation(config.rules.location_rules, locationData.countries)
+
+        if (!shouldShowForLocation) {
+          return json({
+            hasActivePopup: false,
+            message: "Popup is not configured to show in this store's location",
+          })
+        }
+
+        // Add location data to the response for client-side use
+        config.storeLocationData = {
+          countries: locationData.countries,
+        }
+      }
+    }
+
     // Return the popup configuration
     return json({
       hasActivePopup: true,
@@ -463,6 +490,27 @@ export const action: ActionFunction = async ({ request }) => {
         },
         { status: 400 },
       )
+    }
+
+    // Check location rules if they exist
+    if (config?.rules?.location_rules && config.rules.location_rules.type !== "ANY") {
+      // Get store locations from Shopify
+      const locationData = await getStoreLocations(shop, store.accessToken)
+
+      if (locationData.success) {
+        // Check if the popup should be shown based on location rules
+        const shouldShowForLocation = shouldShowByLocation(config.rules.location_rules, locationData.countries)
+
+        if (!shouldShowForLocation) {
+          return json(
+            {
+              error: "Popup is not configured for this store's location",
+              details: "The popup is not available in this region",
+            },
+            { status: 400 },
+          )
+        }
+      }
     }
 
     let discountCode = null

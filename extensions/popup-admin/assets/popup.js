@@ -125,21 +125,40 @@ function shouldShowPopup(config) {
     const locationRules = config.rules.location_rules
 
     if (locationRules.type !== "ANY") {
-      // For INCLUDE or EXCLUDE types, we need to check the user's country
-      // This would typically require server-side detection or a geolocation API
-      // For client-side implementation, we can use a third-party service or navigator.language as a fallback
+      // If we have store location data from the server, use it
+      if (config.storeLocationData && config.storeLocationData.countries) {
+        const storeCountries = config.storeLocationData.countries
 
-      // Example implementation using navigator.language as a fallback (not accurate for production)
-      const userCountry = navigator.language ? navigator.language.split("-")[1] : null
+        // No countries in the store or no countries in rules, default behavior
+        if (!storeCountries.length || !locationRules.countries || !locationRules.countries.length) {
+          return locationRules.type === "EXCLUDE" // Show if excluding (since no countries match)
+        }
 
-      if (userCountry && Array.isArray(locationRules.countries) && locationRules.countries.length > 0) {
-        const countryIncluded = locationRules.countries.includes(userCountry)
+        // Check if any store country is in the rules countries
+        const hasMatchingCountry = storeCountries.some((country) => locationRules.countries.includes(country))
 
+        // For INCLUDE: show if any country matches
+        // For EXCLUDE: show if no country matches
         if (
-          (locationRules.type === "INCLUDE" && !countryIncluded) ||
-          (locationRules.type === "EXCLUDE" && countryIncluded)
+          (locationRules.type === "INCLUDE" && !hasMatchingCountry) ||
+          (locationRules.type === "EXCLUDE" && hasMatchingCountry)
         ) {
           return false
+        }
+      } else {
+        // Fallback to browser detection if server didn't provide location data
+        // This is less accurate but provides a fallback
+        const userCountry = navigator.language ? navigator.language.split("-")[1] : null
+
+        if (userCountry && Array.isArray(locationRules.countries) && locationRules.countries.length > 0) {
+          const countryIncluded = locationRules.countries.includes(userCountry)
+
+          if (
+            (locationRules.type === "INCLUDE" && !countryIncluded) ||
+            (locationRules.type === "EXCLUDE" && countryIncluded)
+          ) {
+            return false
+          }
         }
       }
     }
@@ -322,15 +341,17 @@ function setupStickyDiscountBar(content, style, discountCode = null) {
       <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-weight: 500;">
           ${(() => {
-            const discountType = window.popupConfig?.rules?.discount?.discountType || 
-                                window.popupConfig?.rules?.discount?.discount_code?.discountType || 
-                                "percentage";
-            const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
-                                 window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
-                                 "10";
-            
-            const discountText = discountType === "fixed" ? `$${discountValue} OFF` : `${discountValue}% OFF`;
-            return content?.stickydiscountbar?.description || `Don't forget to use your ${discountText} discount code`;
+            const discountType =
+              window.popupConfig?.rules?.discount?.discountType ||
+              window.popupConfig?.rules?.discount?.discount_code?.discountType ||
+              "percentage"
+            const discountValue =
+              window.popupConfig?.rules?.discount?.discountValue ||
+              window.popupConfig?.rules?.discount?.discount_code?.discountValue ||
+              "10"
+
+            const discountText = discountType === "fixed" ? `$${discountValue} OFF` : `${discountValue}% OFF`
+            return content?.stickydiscountbar?.description || `Don't forget to use your ${discountText} discount code`
           })()}
         </span>
         ${
@@ -459,15 +480,17 @@ function setupSidebarWidget(content, style) {
     padding: 16px 8px; border-radius: 0 4px 4px 0; cursor: pointer; z-index: 9997; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
       <div style="writing-mode: vertical-rl; transform: rotate(180deg); text-orientation: mixed; white-space: nowrap; font-size: 14px; font-weight: 500; letter-spacing: 1px;">
         ${(() => {
-          const discountType = window.popupConfig?.rules?.discount?.discountType || 
-                              window.popupConfig?.rules?.discount?.discount_code?.discountType || 
-                              "percentage";
-          const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
-                               window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
-                               "10";
-          
-          const defaultText = discountType === "fixed" ? `Get $${discountValue} OFF` : `Get ${discountValue}% OFF`;
-          return content?.sidebarWidget?.["btn-text"] || defaultText;
+          const discountType =
+            window.popupConfig?.rules?.discount?.discountType ||
+            window.popupConfig?.rules?.discount?.discount_code?.discountType ||
+            "percentage"
+          const discountValue =
+            window.popupConfig?.rules?.discount?.discountValue ||
+            window.popupConfig?.rules?.discount?.discount_code?.discountValue ||
+            "10"
+
+          const defaultText = discountType === "fixed" ? `Get $${discountValue} OFF` : `Get ${discountValue}% OFF`
+          return content?.sidebarWidget?.["btn-text"] || defaultText
         })()}
       </div>
     </div>
@@ -553,9 +576,9 @@ function renderPopup(content, style, rules) {
 
   // Determine button text based on discount settings and type
   let buttonText = "Subscribe"
-  let discountType = rules?.discount?.discountType || rules?.discount?.discount_code?.discountType || "percentage"
-  let discountValue = rules?.discount?.discountValue || rules?.discount?.discount_code?.discountValue || "10"
-  
+  const discountType = rules?.discount?.discountType || rules?.discount?.discount_code?.discountType || "percentage"
+  const discountValue = rules?.discount?.discountValue || rules?.discount?.discount_code?.discountValue || "10"
+
   if (discountCodeEnabled || manualDiscountEnabled) {
     // Customize button text based on discount type
     if (discountType === "fixed") {
@@ -860,16 +883,18 @@ function renderPopup(content, style, rules) {
       }
 
       // Get discount type and value from config
-      const discountType = window.popupConfig?.rules?.discount?.discountType || 
-                          window.popupConfig?.rules?.discount?.discount_code?.discountType || 
-                          "percentage";
-      const discountValue = window.popupConfig?.rules?.discount?.discountValue || 
-                           window.popupConfig?.rules?.discount?.discount_code?.discountValue || 
-                           "10";
-      
+      const discountType =
+        window.popupConfig?.rules?.discount?.discountType ||
+        window.popupConfig?.rules?.discount?.discount_code?.discountType ||
+        "percentage"
+      const discountValue =
+        window.popupConfig?.rules?.discount?.discountValue ||
+        window.popupConfig?.rules?.discount?.discount_code?.discountValue ||
+        "10"
+
       // Format discount text based on type
-      const discountText = discountType === "fixed" ? `$${discountValue}` : `${discountValue}%`;
-      
+      const discountText = discountType === "fixed" ? `$${discountValue}` : `${discountValue}%`
+
       // Determine success message based on whether discount was created and its type
       const successHeading = hasDiscount
         ? content?.success?.heading || `${discountText} OFF unlocked 🎉`
