@@ -606,6 +606,127 @@ function renderPopup(content, style, rules) {
     buttonText = content?.actions1?.primaryButtonText || "Subscribe"
   }
 
+  // Get field order from config or use default order
+  const fieldOrder = content?.form?.fieldOrder || [
+    { id: "name", label: "Name" },
+    { id: "email", label: "Email address" },
+    { id: "phone", label: "Phone" },
+    { id: "birthday", label: "Birthday" },
+    { id: "marketingconsent", label: "Marketing consent" },
+    { id: "smsconsent", label: "SMS consent" },
+  ]
+
+  // Generate form fields HTML based on field order and enabled status
+  const generateFormFieldsHTML = () => {
+    let fieldsHTML = ""
+
+    // Process each field in the order specified
+    fieldOrder.forEach((field) => {
+      const isEnabled = content?.form?.fields?.[field.id]
+
+      // Skip disabled fields
+      if (!isEnabled) return
+
+      // Generate HTML for each field type
+      switch (field.id) {
+        case "name":
+          fieldsHTML += `
+            <div>
+              <input type="text" id="popup-name" placeholder="Your name" 
+              style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
+              font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+              <div id="name-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
+                ${content?.errorTexts?.firstName || "Please enter your first name!"}
+              </div>
+            </div>`
+          break
+
+        case "email":
+          fieldsHTML += `
+            <div>
+              <input type="email" id="popup-email" placeholder="Email address" 
+              style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
+              font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+              <div id="email-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
+                ${content?.errorTexts?.email || "Please enter your email address!"}
+              </div>
+            </div>`
+          break
+
+        case "phone":
+          fieldsHTML += `
+            <div>
+              <div style="display: flex; width: 100%;">
+                <div style="width: 30%; position: relative; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius} 0 0 ${borderRadius}; overflow: hidden;">
+                  <div style="display: flex; align-items: center; padding: 0 10px; height: 100%;">
+                    <img src="https://flagcdn.com/w20/in.png" style="width: 20px; margin-right: 5px;" alt="India">
+                    <span>+91</span>
+                  </div>
+                </div>
+                <input type="tel" id="popup-phone" placeholder="Phone number" 
+                style="width: 70%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-left: none; border-radius: 0 ${borderRadius} ${borderRadius} 0; 
+                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+              </div>
+              <div id="phone-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
+                ${content?.errorTexts?.phoneNumber || "Please enter valid phone number!"}
+              </div>
+            </div>`
+          break
+
+        case "birthday":
+          fieldsHTML += `
+            <div>
+              <label style="display: block; margin-bottom: 8px; font-size: 16px; color: ${colors.label};">Birthday</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="popup-birthday-mm" placeholder="MM" maxlength="2"
+                style="width: 30%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
+                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+                
+                <input type="text" id="popup-birthday-dd" placeholder="DD" maxlength="2"
+                style="width: 30%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
+                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+                
+                <input type="text" id="popup-birthday-yyyy" placeholder="YYYY" maxlength="4"
+                style="width: 40%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
+                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
+              </div>
+              <div id="birthday-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
+                ${content?.errorTexts?.birthdayError || "Please enter valid birthday!"}
+              </div>
+            </div>`
+          break
+
+        case "marketingconsent":
+          fieldsHTML += `
+            <div style="margin-top: 10px;">
+              <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                <input type="checkbox" id="popup-marketing-consent" 
+                style="margin-right: 10px; margin-top: 3px;">
+                <span style="font-size: 14px; color: ${colors.consent};">
+                  I agree to receive marketing emails
+                </span>
+              </label>
+            </div>`
+          break
+
+        case "smsconsent":
+          fieldsHTML += `
+            <div style="margin-top: 10px;">
+              <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                <input type="checkbox" id="popup-sms-consent" 
+                style="margin-right: 10px; margin-top: 3px;">
+                <span style="font-size: 14px; color: ${colors.consent};">
+                  By signing up, you agree to receive recurring automated marketing messages at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Msg frequency varies. Msg & data rates may apply. View Privacy Policy & Terms.
+                </span>
+              </label>
+            </div>`
+          break
+      }
+    })
+
+    return fieldsHTML
+  }
+
   // Create the popup HTML structure based on layout
   let popupStructure = ""
 
@@ -645,27 +766,7 @@ function renderPopup(content, style, rules) {
           </p>
           
           <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
-            ${
-              content?.form?.fields?.name
-                ? `<div>
-                <input type="text" id="popup-name" placeholder="Your name" 
-                style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
-                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
-                <div id="name-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                  ${content?.errorTexts?.firstName || "Please enter your first name!"}
-                </div>
-              </div>`
-                : ""
-            }
-            
-            <div>
-              <input type="email" id="popup-email" placeholder="Email address" 
-              style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
-              font-size: 16px; box-sizing: border-box; color: ${colors.input};">
-              <div id="email-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                ${content?.errorTexts?.email || "Please enter your email address!"}
-              </div>
-            </div>
+            ${generateFormFieldsHTML()}
             
             ${
               content?.actions1?.primary
@@ -732,27 +833,7 @@ function renderPopup(content, style, rules) {
           </p>
           
           <form id="email-form" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
-            ${
-              content?.form?.fields?.name
-                ? `<div>
-                <input type="text" id="popup-name" placeholder="Your name" 
-                style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
-                font-size: 16px; box-sizing: border-box; color: ${colors.input};">
-                <div id="name-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                  ${content?.errorTexts?.firstName || "Please enter your first name!"}
-                </div>
-              </div>`
-                : ""
-            }
-            
-            <div>
-              <input type="email" id="popup-email" placeholder="Email address" 
-              style="width: 100%; padding: 12px 15px; border: 1px solid ${colors.inputBorder}; border-radius: ${borderRadius}; 
-              font-size: 16px; box-sizing: border-box; color: ${colors.input};">
-              <div id="email-error" class="error-message" style="color: ${colors.error}; font-size: 14px; margin-top: 5px; display: none;">
-                ${content?.errorTexts?.email || "Please enter your email address!"}
-              </div>
-            </div>
+            ${generateFormFieldsHTML()}
             
             ${
               content?.actions1?.primary
@@ -807,7 +888,7 @@ function renderPopup(content, style, rules) {
 
     // Get form values
     const emailInput = document.getElementById("popup-email")
-    const email = emailInput.value.trim()
+    const email = emailInput ? emailInput.value.trim() : ""
 
     // Get name if name field exists
     const nameInput = document.getElementById("popup-name")
@@ -824,10 +905,19 @@ function renderPopup(content, style, rules) {
     }
 
     // Get birthday if birthday field exists
-    const birthdayInput = document.getElementById("popup-birthday")
     let birthday = ""
-    if (birthdayInput) {
-      birthday = birthdayInput.value.trim()
+    const birthdayMMInput = document.getElementById("popup-birthday-mm")
+    const birthdayDDInput = document.getElementById("popup-birthday-dd")
+    const birthdayYYYYInput = document.getElementById("popup-birthday-yyyy")
+
+    if (birthdayMMInput && birthdayDDInput && birthdayYYYYInput) {
+      const mm = birthdayMMInput.value.trim().padStart(2, "0")
+      const dd = birthdayDDInput.value.trim().padStart(2, "0")
+      const yyyy = birthdayYYYYInput.value.trim()
+
+      if (mm && dd && yyyy) {
+        birthday = `${yyyy}-${mm}-${dd}`
+      }
     }
 
     // Get marketing consent if field exists
@@ -848,14 +938,14 @@ function renderPopup(content, style, rules) {
     let hasErrors = false
 
     // Email validation
-    if (!email) {
+    if (emailInput && !email) {
       const emailError = document.getElementById("email-error")
       if (emailError) {
         emailError.textContent = content?.errorTexts?.email || "Please enter your email address!"
         emailError.style.display = "block"
         hasErrors = true
       }
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    } else if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       const emailError = document.getElementById("email-error")
       if (emailError) {
         emailError.textContent =
@@ -886,7 +976,7 @@ function renderPopup(content, style, rules) {
     }
 
     // Birthday validation (if birthday field exists and required)
-    if (birthdayInput && content?.form?.birthdayRequired && !birthday) {
+    if (birthdayMMInput && birthdayDDInput && birthdayYYYYInput && content?.form?.birthdayRequired && !birthday) {
       const birthdayError = document.getElementById("birthday-error")
       if (birthdayError) {
         birthdayError.textContent = content?.errorTexts?.birthday || "Please enter your birthday!"
