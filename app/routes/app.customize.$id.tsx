@@ -3,10 +3,19 @@ import { useLoaderData, useNavigate } from "@remix-run/react"
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node"
 import { Modal, useAppBridge } from "@shopify/app-bridge-react"
 import { getPopupById, updatePopup } from "../services/popup.server"
+import { MetaobjectService } from "../services/meta.server"
 import PopupEditor from "./app.customise"
 import { useEffect } from "react"
+import { authenticate } from "../shopify.server"
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const meta = () => {
+  return [
+    { title: "Customize Popup | Your App Name" },
+    { name: "description", content: "Customize your popup settings" }
+  ];
+};
+
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { id } = params
 
   if (!id) {
@@ -65,13 +74,17 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     console.log("Config:", JSON.stringify(config, null, 2))
     console.log("isActive:", isActive)
 
-    // Update the popup using the service function
+    // 1. Update the popup in your database using the service function
     await updatePopup({
       id,
       config,
       isActive,
     })
 
+    // 2. Save the same data to metaobjects
+    const metaobjectService = new MetaobjectService()
+    await metaobjectService.savePopupToMetaobject(request, id, config, isActive)
+    
     return json({ success: true, message: "Popup updated successfully" })
   } catch (error) {
     console.error("Error updating popup:", error)

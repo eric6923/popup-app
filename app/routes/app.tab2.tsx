@@ -1,16 +1,17 @@
-"use client"
 
-import { BlockStack, Button, Checkbox, InlineStack, Text, TextField, Modal, ActionList } from "@shopify/polaris"
+import { BlockStack, Button, Checkbox, InlineStack, Text, TextField, Select, RadioButton } from "@shopify/polaris"
 import { useState, useEffect } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
-import { TextBoldIcon, TextItalicIcon, ListBulletedIcon, LinkIcon } from "@shopify/polaris-icons"
+import { TextBoldIcon, TextItalicIcon, ListBulletedIcon, LinkIcon, XIcon } from "@shopify/polaris-icons"
 
 function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
   // Initialize state from config
-  const [nameChecked, setNameChecked] = useState(config?.content?.form?.fields?.name || false)
-  const [emailChecked, setEmailChecked] = useState(config?.content?.form?.fields?.email || true)
+  const [nameChecked, setNameChecked] = useState(config?.content?.form?.fields?.name?.enabled || false)
+  const [emailChecked, setEmailChecked] = useState(
+    config?.content?.form?.fields?.email?.enabled !== undefined ? config?.content?.form?.fields?.email?.enabled : true,
+  )
   const [primaryButtonChecked, setPrimaryButtonChecked] = useState(config?.content?.actions1?.primary || true)
   const [secondaryButtonChecked, setSecondaryButtonChecked] = useState(config?.content?.actions1?.secondary || true)
   const [buttonChecked, setButtonChecked] = useState(config?.content?.actions2?.enabled || true)
@@ -56,13 +57,94 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     config?.content?.errorTexts?.birthdayError || "Please enter valid birthday!",
   )
 
-  // Add after the existing state declarations
-  const [phoneChecked, setPhoneChecked] = useState(config?.content?.form?.fields?.phone || false)
-  const [birthdayChecked, setBirthdayChecked] = useState(config?.content?.form?.fields?.birthday || false)
-  const [marketingConsentChecked, setMarketingConsentChecked] = useState(
-    config?.content?.form?.fields?.marketingconsent || false,
+  // Name field configuration
+  const [nameFieldType, setNameFieldType] = useState(config?.content?.form?.fields?.name?.field_type || "both")
+  const [nameLayout, setNameLayout] = useState(config?.content?.form?.fields?.name?.layout || "horizontal")
+  const [firstNameRequired, setFirstNameRequired] = useState(
+    config?.content?.form?.fields?.name?.first_name?.required !== undefined
+      ? config?.content?.form?.fields?.name?.first_name?.required
+      : true,
   )
-  const [smsConsentChecked, setSmsConsentChecked] = useState(config?.content?.form?.fields?.smsconsent || false)
+  const [lastNameRequired, setLastNameRequired] = useState(
+    config?.content?.form?.fields?.name?.last_name?.required !== undefined
+      ? config?.content?.form?.fields?.name?.last_name?.required
+      : true,
+  )
+  const [firstNamePlaceholder, setFirstNamePlaceholder] = useState(
+    config?.content?.form?.fields?.name?.first_name?.placeholder || "First name",
+  )
+  const [lastNamePlaceholder, setLastNamePlaceholder] = useState(
+    config?.content?.form?.fields?.name?.last_name?.placeholder || "Last name",
+  )
+
+  // Email field configuration
+  const [emailPlaceholder, setEmailPlaceholder] = useState(
+    config?.content?.form?.fields?.email?.placeholder || "Email address",
+  )
+  const [emailRequired, setEmailRequired] = useState(
+    config?.content?.form?.fields?.email?.required !== undefined
+      ? config?.content?.form?.fields?.email?.required
+      : true,
+  )
+
+  // Phone field configuration
+  const [phoneChecked, setPhoneChecked] = useState(
+    config?.content?.form?.fields?.phone?.enabled !== undefined ? config?.content?.form?.fields?.phone?.enabled : false,
+  )
+  const [phoneCountry, setPhoneCountry] = useState(config?.content?.form?.fields?.phone?.country || "IN")
+  const [phoneRequired, setPhoneRequired] = useState(
+    config?.content?.form?.fields?.phone?.required !== undefined
+      ? config?.content?.form?.fields?.phone?.required
+      : true,
+  )
+  const [phonePlaceholder, setPhonePlaceholder] = useState(
+    config?.content?.form?.fields?.phone?.placeholder || "Phone number",
+  )
+
+  // Birthday field configuration
+  const [birthdayChecked, setBirthdayChecked] = useState(
+    config?.content?.form?.fields?.birthday?.enabled !== undefined
+      ? config?.content?.form?.fields?.birthday?.enabled
+      : false,
+  )
+  const [birthdayFormat, setBirthdayFormat] = useState(config?.content?.form?.fields?.birthday?.format || "MM/DD/YYYY")
+  const [birthdayRequired, setBirthdayRequired] = useState(
+    config?.content?.form?.fields?.birthday?.required !== undefined
+      ? config?.content?.form?.fields?.birthday?.required
+      : true,
+  )
+  const [birthdayLabel, setBirthdayLabel] = useState(config?.content?.form?.fields?.birthday?.label || "Birthday")
+  const [birthdayDayPlaceholder, setBirthdayDayPlaceholder] = useState(
+    config?.content?.form?.fields?.birthday?.day?.placeholder || "DD",
+  )
+  const [birthdayMonthPlaceholder, setBirthdayMonthPlaceholder] = useState(
+    config?.content?.form?.fields?.birthday?.month?.placeholder || "MM",
+  )
+  const [birthdayYearPlaceholder, setBirthdayYearPlaceholder] = useState(
+    config?.content?.form?.fields?.birthday?.year?.placeholder || "YYYY",
+  )
+
+  // Marketing consent field configuration
+  const [marketingConsentChecked, setMarketingConsentChecked] = useState(
+    config?.content?.form?.fields?.marketingconsent?.enabled !== undefined
+      ? config?.content?.form?.fields?.marketingconsent?.enabled
+      : false,
+  )
+  const [marketingConsentContent, setMarketingConsentContent] = useState(
+    config?.content?.form?.fields?.marketingconsent?.content || "<p>I agree to receive marketing emails</p>",
+  )
+
+  // SMS consent field configuration
+  const [smsConsentChecked, setSmsConsentChecked] = useState(
+    config?.content?.form?.fields?.smsconsent?.enabled !== undefined
+      ? config?.content?.form?.fields?.smsconsent?.enabled
+      : false,
+  )
+  const [smsConsentContent, setSmsConsentContent] = useState(
+    config?.content?.form?.fields?.smsconsent?.content ||
+      "<p>By signing up, you agree to receive recurring automated marketing messages at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Msg frequency varies. Msg & data rates may apply. View Privacy Policy & Terms.</p>",
+  )
+
   const [addFieldPopoverActive, setAddFieldPopoverActive] = useState(false)
 
   // Link modal states
@@ -71,6 +153,11 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
   const [linkUrl, setLinkUrl] = useState("")
   const [openInNewTab, setOpenInNewTab] = useState(false)
   const [selectedRange, setSelectedRange] = useState<{ from: number; to: number } | null>(null)
+  const [currentEditor, setCurrentEditor] = useState<"footer" | "marketingConsent" | "smsConsent" | null>(null)
+
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false)
+  const [currentEditField, setCurrentEditField] = useState("")
 
   // Custom Link extension with target support
   const CustomLink = Link.configure({
@@ -99,8 +186,8 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     },
   })
 
-  // TipTap editor for footer text
-  const editor = useEditor({
+  // TipTap editors
+  const footerEditor = useEditor({
     extensions: [
       StarterKit.configure({
         bulletList: {
@@ -134,6 +221,82 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     },
   })
 
+  const marketingConsentEditor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
+      }),
+      CustomLink,
+    ],
+    content: marketingConsentContent,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      setMarketingConsentContent(html)
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        marketingconsent: {
+          ...config?.content?.form?.fields?.marketingconsent,
+          content: html,
+        },
+      })
+    },
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none",
+      },
+      handleDOMEvents: {
+        mousedown: (view, event) => {
+          return false
+        },
+      },
+    },
+  })
+
+  const smsConsentEditor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: true,
+        },
+      }),
+      CustomLink,
+    ],
+    content: smsConsentContent,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      setSmsConsentContent(html)
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        smsconsent: {
+          ...config?.content?.form?.fields?.smsconsent,
+          content: html,
+        },
+      })
+    },
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none",
+      },
+      handleDOMEvents: {
+        mousedown: (view, event) => {
+          return false
+        },
+      },
+    },
+  })
+
   // Update config when any field changes
   const updateConfig = (section, field, value) => {
     setConfig((prevConfig) => {
@@ -158,67 +321,139 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     setHasUnsavedChanges(true)
   }
 
-  // Set editor content when footerText changes from external source
+  // Set editor content when text changes from external source
   useEffect(() => {
-    if (editor && footerText !== editor.getHTML()) {
-      editor.commands.setContent(footerText)
+    if (footerEditor && footerText !== footerEditor.getHTML()) {
+      footerEditor.commands.setContent(footerText)
     }
-  }, [editor, footerText])
+  }, [footerEditor, footerText])
+
+  useEffect(() => {
+    if (marketingConsentEditor && marketingConsentContent !== marketingConsentEditor.getHTML()) {
+      marketingConsentEditor.commands.setContent(marketingConsentContent)
+    }
+  }, [marketingConsentEditor, marketingConsentContent])
+
+  useEffect(() => {
+    if (smsConsentEditor && smsConsentContent !== smsConsentEditor.getHTML()) {
+      smsConsentEditor.commands.setContent(smsConsentContent)
+    }
+  }, [smsConsentEditor, smsConsentContent])
 
   // Update config when component mounts
   useEffect(() => {
     if (config && setConfig) {
-      const updatedContent = {
-        Heading: headingText,
-        Description: descriptionText,
-        form: {
-          fields: {
-            name: nameChecked,
-            email: emailChecked,
-            phone: phoneChecked,
-            birthday: birthdayChecked,
-            marketingconsent: marketingConsentChecked,
-            smsconsent: smsConsentChecked,
-          },
-        },
-        actions1: {
-          primary: primaryButtonChecked,
-          secondary: secondaryButtonChecked,
-        },
-        footer: {
-          footerText: footerText,
-        },
-        success: {
-          heading: successHeading,
-          description: successDescription,
-        },
-        actions2: {
-          enabled: buttonChecked,
-        },
-        stickydiscountbar: {
-          description: stickyDescription,
-        },
-        sidebarWidget: {
-          "btn-text": buttonText,
-        },
-        errorTexts: {
-          firstName: firstNameError,
-          lastName: lastNameError,
-          email: emailError,
-          phoneNumber: phoneError,
-          policy: policyError,
-          alreadySubscribed: subscribedError,
-          submitError: submitError,
-          birthdayError: birthdayError,
-        },
-      }
-
-      setConfig((prevConfig) => ({
-        ...prevConfig,
-        content: updatedContent,
-      }))
+      updateFormConfig()
     }
   }, [])
+
+  // Function to update form configuration
+  const updateFormConfig = () => {
+    const updatedContent = {
+      Heading: headingText,
+      Description: descriptionText,
+      form: {
+        fields: {
+          name: nameChecked
+            ? {
+                layout: nameLayout,
+                enabled: nameChecked,
+                field_type: nameFieldType,
+                first_name: {
+                  required: firstNameRequired,
+                  placeholder: firstNamePlaceholder,
+                },
+                last_name: {
+                  required: lastNameRequired,
+                  placeholder: lastNamePlaceholder,
+                },
+              }
+            : {
+                enabled: false,
+              },
+          email: {
+            enabled: emailChecked,
+            required: emailRequired,
+            placeholder: emailPlaceholder,
+          },
+          phone: phoneChecked
+            ? {
+                country: phoneCountry,
+                enabled: phoneChecked,
+                required: phoneRequired,
+                placeholder: phonePlaceholder,
+              }
+            : {
+                enabled: false,
+              },
+          birthday: birthdayChecked
+            ? {
+                day: { placeholder: birthdayDayPlaceholder },
+                year: { placeholder: birthdayYearPlaceholder },
+                label: birthdayLabel,
+                month: { placeholder: birthdayMonthPlaceholder },
+                format: birthdayFormat,
+                enabled: birthdayChecked,
+                required: birthdayRequired,
+              }
+            : {
+                enabled: false,
+              },
+          marketingconsent: marketingConsentChecked
+            ? {
+                content: marketingConsentContent,
+                enabled: marketingConsentChecked,
+              }
+            : {
+                enabled: false,
+              },
+          smsconsent: smsConsentChecked
+            ? {
+                content: smsConsentContent,
+                enabled: smsConsentChecked,
+              }
+            : {
+                enabled: false,
+              },
+        },
+      },
+      actions1: {
+        primary: primaryButtonChecked,
+        secondary: secondaryButtonChecked,
+      },
+      footer: {
+        footerText: footerText,
+      },
+      success: {
+        heading: successHeading,
+        description: successDescription,
+      },
+      actions2: {
+        enabled: buttonChecked,
+      },
+      stickydiscountbar: {
+        description: stickyDescription,
+      },
+      sidebarWidget: {
+        "btn-text": buttonText,
+      },
+      errorTexts: {
+        firstName: firstNameError,
+        lastName: lastNameError,
+        email: emailError,
+        phoneNumber: phoneError,
+        policy: policyError,
+        alreadySubscribed: subscribedError,
+        submitError: submitError,
+        birthdayError: birthdayError,
+      },
+    }
+
+    setConfig((prevConfig) => ({
+      ...prevConfig,
+      content: updatedContent,
+    }))
+  }
 
   // Handle field changes
   const handleHeadingChange = (value) => {
@@ -233,12 +468,44 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
 
   const handleNameCheckedChange = (checked) => {
     setNameChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, name: checked })
+
+    if (checked) {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        name: {
+          layout: nameLayout,
+          enabled: checked,
+          field_type: nameFieldType,
+          first_name: {
+            required: firstNameRequired,
+            placeholder: firstNamePlaceholder,
+          },
+          last_name: {
+            required: lastNameRequired,
+            placeholder: lastNamePlaceholder,
+          },
+        },
+      })
+    } else {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        name: {
+          enabled: false,
+        },
+      })
+    }
   }
 
   const handleEmailCheckedChange = (checked) => {
     setEmailChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, email: checked })
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      email: {
+        enabled: checked,
+        required: emailRequired,
+        placeholder: emailPlaceholder,
+      },
+    })
   }
 
   const handlePrimaryButtonChange = (checked) => {
@@ -316,25 +583,308 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     updateConfig("errorTexts", "birthdayError", value)
   }
 
-  // Add after the existing handler functions
+  // Name field handlers
+  const handleNameFieldTypeChange = (value) => {
+    setNameFieldType(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        field_type: value,
+      },
+    })
+  }
+
+  const handleNameLayoutChange = (value) => {
+    setNameLayout(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        layout: value,
+      },
+    })
+  }
+
+  const handleFirstNameRequiredChange = (checked) => {
+    setFirstNameRequired(checked)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        first_name: {
+          ...config?.content?.form?.fields?.name?.first_name,
+          required: checked,
+        },
+      },
+    })
+  }
+
+  const handleLastNameRequiredChange = (checked) => {
+    setLastNameRequired(checked)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        last_name: {
+          ...config?.content?.form?.fields?.name?.last_name,
+          required: checked,
+        },
+      },
+    })
+  }
+
+  const handleFirstNamePlaceholderChange = (value) => {
+    setFirstNamePlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        first_name: {
+          ...config?.content?.form?.fields?.name?.first_name,
+          placeholder: value,
+        },
+      },
+    })
+  }
+
+  const handleLastNamePlaceholderChange = (value) => {
+    setLastNamePlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      name: {
+        ...config?.content?.form?.fields?.name,
+        last_name: {
+          ...config?.content?.form?.fields?.name?.last_name,
+          placeholder: value,
+        },
+      },
+    })
+  }
+
+  // Email field handlers
+  const handleEmailPlaceholderChange = (value) => {
+    setEmailPlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      email: {
+        ...config?.content?.form?.fields?.email,
+        placeholder: value,
+      },
+    })
+  }
+
+  const handleEmailRequiredChange = (checked) => {
+    setEmailRequired(checked)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      email: {
+        ...config?.content?.form?.fields?.email,
+        required: checked,
+      },
+    })
+  }
+
+  // Phone field handlers
   const handlePhoneCheckedChange = (checked) => {
     setPhoneChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, phone: checked })
+
+    if (checked) {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        phone: {
+          country: phoneCountry,
+          enabled: checked,
+          required: phoneRequired,
+          placeholder: phonePlaceholder,
+        },
+      })
+    } else {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        phone: {
+          enabled: false,
+        },
+      })
+    }
   }
 
+  const handlePhoneCountryChange = (value) => {
+    setPhoneCountry(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      phone: {
+        ...config?.content?.form?.fields?.phone,
+        country: value,
+      },
+    })
+  }
+
+  const handlePhoneRequiredChange = (checked) => {
+    setPhoneRequired(checked)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      phone: {
+        ...config?.content?.form?.fields?.phone,
+        required: checked,
+      },
+    })
+  }
+
+  const handlePhonePlaceholderChange = (value) => {
+    setPhonePlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      phone: {
+        ...config?.content?.form?.fields?.phone,
+        placeholder: value,
+      },
+    })
+  }
+
+  // Birthday field handlers
   const handleBirthdayCheckedChange = (checked) => {
     setBirthdayChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, birthday: checked })
+
+    if (checked) {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        birthday: {
+          day: { placeholder: birthdayDayPlaceholder },
+          year: { placeholder: birthdayYearPlaceholder },
+          label: birthdayLabel,
+          month: { placeholder: birthdayMonthPlaceholder },
+          format: birthdayFormat,
+          enabled: checked,
+          required: birthdayRequired,
+        },
+      })
+    } else {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        birthday: {
+          enabled: false,
+        },
+      })
+    }
   }
 
+  const handleBirthdayFormatChange = (value) => {
+    setBirthdayFormat(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        format: value,
+      },
+    })
+  }
+
+  const handleBirthdayRequiredChange = (checked) => {
+    setBirthdayRequired(checked)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        required: checked,
+      },
+    })
+  }
+
+  const handleBirthdayLabelChange = (value) => {
+    setBirthdayLabel(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        label: value,
+      },
+    })
+  }
+
+  const handleBirthdayDayPlaceholderChange = (value) => {
+    setBirthdayDayPlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        day: {
+          ...config?.content?.form?.fields?.birthday?.day,
+          placeholder: value,
+        },
+      },
+    })
+  }
+
+  const handleBirthdayMonthPlaceholderChange = (value) => {
+    setBirthdayMonthPlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        month: {
+          ...config?.content?.form?.fields?.birthday?.month,
+          placeholder: value,
+        },
+      },
+    })
+  }
+
+  const handleBirthdayYearPlaceholderChange = (value) => {
+    setBirthdayYearPlaceholder(value)
+    updateConfig("form", "fields", {
+      ...config?.content?.form?.fields,
+      birthday: {
+        ...config?.content?.form?.fields?.birthday,
+        year: {
+          ...config?.content?.form?.fields?.birthday?.year,
+          placeholder: value,
+        },
+      },
+    })
+  }
+
+  // Consent field handlers
   const handleMarketingConsentCheckedChange = (checked) => {
     setMarketingConsentChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, marketingconsent: checked })
+
+    if (checked) {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        marketingconsent: {
+          content: marketingConsentContent,
+          enabled: checked,
+        },
+      })
+    } else {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        marketingconsent: {
+          enabled: false,
+        },
+      })
+    }
   }
 
   const handleSmsConsentCheckedChange = (checked) => {
     setSmsConsentChecked(checked)
-    updateConfig("form", "fields", { ...config?.content?.form?.fields, smsconsent: checked })
+
+    if (checked) {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        smsconsent: {
+          content: smsConsentContent,
+          enabled: checked,
+        },
+      })
+    } else {
+      updateConfig("form", "fields", {
+        ...config?.content?.form?.fields,
+        smsconsent: {
+          enabled: false,
+        },
+      })
+    }
   }
 
   const toggleAddFieldPopover = () => {
@@ -343,29 +893,45 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
 
   const handleAddField = (field) => {
     switch (field) {
+      case "name":
+        setNameChecked(true)
+        handleNameCheckedChange(true)
+        break
       case "phone":
         setPhoneChecked(true)
-        updateConfig("form", "fields", { ...config?.content?.form?.fields, phone: true })
+        handlePhoneCheckedChange(true)
         break
       case "birthday":
         setBirthdayChecked(true)
-        updateConfig("form", "fields", { ...config?.content?.form?.fields, birthday: true })
+        handleBirthdayCheckedChange(true)
         break
       case "marketingconsent":
         setMarketingConsentChecked(true)
-        updateConfig("form", "fields", { ...config?.content?.form?.fields, marketingconsent: true })
+        handleMarketingConsentCheckedChange(true)
         break
       case "smsconsent":
         setSmsConsentChecked(true)
-        updateConfig("form", "fields", { ...config?.content?.form?.fields, smsconsent: true })
+        handleSmsConsentCheckedChange(true)
         break
     }
     setAddFieldPopoverActive(false)
   }
 
   // Link modal handlers
-  const handleLinkModalOpen = () => {
+  const handleLinkModalOpen = (editorType: "footer" | "marketingConsent" | "smsConsent") => {
+    let editor
+
+    if (editorType === "footer") {
+      editor = footerEditor
+    } else if (editorType === "marketingConsent") {
+      editor = marketingConsentEditor
+    } else if (editorType === "smsConsent") {
+      editor = smsConsentEditor
+    }
+
     if (!editor) return
+
+    setCurrentEditor(editorType)
 
     // Make sure editor is focused
     editor.commands.focus()
@@ -405,9 +971,20 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     setLinkUrl("")
     setOpenInNewTab(false)
     setSelectedRange(null)
+    setCurrentEditor(null)
   }
 
   const handleLinkSave = () => {
+    let editor
+
+    if (currentEditor === "footer") {
+      editor = footerEditor
+    } else if (currentEditor === "marketingConsent") {
+      editor = marketingConsentEditor
+    } else if (currentEditor === "smsConsent") {
+      editor = smsConsentEditor
+    }
+
     if (!editor || !selectedRange) return
 
     // If URL is empty, remove the link
@@ -463,33 +1040,58 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     handleLinkModalClose()
   }
 
-  // Edit button component
-  const EditButton = () => (
-    <Button plain monochrome textDecoration="underline" onClick={() => console.log("Edit clicked")}>
-      <Text as="span" color="highlight">
-        Edit
-      </Text>
-    </Button>
-  )
+  // Edit mode handlers
+  const handleFieldEdit = (field) => {
+    setCurrentEditField(field)
+    setEditMode(true)
+  }
 
-  // Row with label and edit button
-  const RowWithEdit = ({ label, checked, onChange }: any) => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-        padding: "4px 0",
-      }}
-    >
-      <Checkbox label={label} checked={checked} onChange={onChange} />
-      <EditButton />
-    </div>
-  )
+  const handleEditCancel = () => {
+    setEditMode(false)
+    setCurrentEditField("")
+  }
+
+  const handleEditDone = () => {
+    setEditMode(false)
+    setCurrentEditField("")
+    updateFormConfig()
+  }
+
+  const handleRemoveField = () => {
+    if (!currentEditField) return
+
+    switch (currentEditField) {
+      case "name":
+        setNameChecked(false)
+        handleNameCheckedChange(false)
+        break
+      case "email":
+        // Email is required, so we don't allow removing it
+        break
+      case "phone":
+        setPhoneChecked(false)
+        handlePhoneCheckedChange(false)
+        break
+      case "birthday":
+        setBirthdayChecked(false)
+        handleBirthdayCheckedChange(false)
+        break
+      case "marketingconsent":
+        setMarketingConsentChecked(false)
+        handleMarketingConsentCheckedChange(false)
+        break
+      case "smsconsent":
+        setSmsConsentChecked(false)
+        handleSmsConsentCheckedChange(false)
+        break
+    }
+
+    setEditMode(false)
+    setCurrentEditField("")
+  }
 
   // TipTap toolbar buttons
-  const MenuBar = ({ editor }: any) => {
+  const MenuBar = ({ editor, onLinkClick }: any) => {
     if (!editor) {
       return null
     }
@@ -541,7 +1143,7 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
           }}
           icon={ListBulletedIcon}
         />
-        <Button size="slim" pressed={editor.isActive("link")} onClick={handleLinkModalOpen} icon={LinkIcon} />
+        <Button size="slim" pressed={editor.isActive("link")} onClick={onLinkClick} icon={LinkIcon} />
       </InlineStack>
     )
   }
@@ -563,6 +1165,496 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
     }
   }, [addFieldPopoverActive])
 
+  // Row with label and edit button
+  const RowWithEdit = ({ label, checked, onChange, onEdit }: any) => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+        padding: "4px 0",
+      }}
+    >
+      <Checkbox label={label} checked={checked} onChange={onChange} />
+      <Button plain monochrome textDecoration="underline" onClick={onEdit}>
+        <Text as="span" color="highlight">
+          Edit
+        </Text>
+      </Button>
+    </div>
+  )
+
+  // Render edit mode for different field types
+  const renderEditMode = () => {
+    switch (currentEditField) {
+      case "name":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                Name
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Field type
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <Select
+                  label=""
+                  labelHidden
+                  options={[
+                    { label: "First name and last name", value: "both" },
+                    { label: "First name only", value: "first_name_only" },
+                    { label: "Last name only", value: "last_name_only" },
+                  ]}
+                  value={nameFieldType}
+                  onChange={handleNameFieldTypeChange}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Layout
+              </Text>
+              <div style={{ marginTop: "8px", display: "flex", gap: "16px" }}>
+                <RadioButton
+                  label="Vertical"
+                  checked={nameLayout === "vertical"}
+                  id="vertical-layout"
+                  name="layout"
+                  onChange={() => handleNameLayoutChange("vertical")}
+                />
+                <RadioButton
+                  label="Horizontal"
+                  checked={nameLayout === "horizontal"}
+                  id="horizontal-layout"
+                  name="layout"
+                  onChange={() => handleNameLayoutChange("horizontal")}
+                />
+              </div>
+            </div>
+
+            {(nameFieldType === "both" || nameFieldType === "first_name_only") && (
+              <div style={{ marginTop: "16px" }}>
+                <Text as="p" fontWeight="medium" variant="bodyMd">
+                  First name placeholder
+                </Text>
+                <div style={{ marginTop: "8px" }}>
+                  <TextField
+                    label=""
+                    value={firstNamePlaceholder}
+                    onChange={handleFirstNamePlaceholderChange}
+                    autoComplete="off"
+                  />
+                </div>
+                <div style={{ marginTop: "8px" }}>
+                  <Checkbox
+                    label="First name field is required"
+                    checked={firstNameRequired}
+                    onChange={handleFirstNameRequiredChange}
+                  />
+                </div>
+              </div>
+            )}
+
+            {(nameFieldType === "both" || nameFieldType === "last_name_only") && (
+              <div style={{ marginTop: "16px" }}>
+                <Text as="p" fontWeight="medium" variant="bodyMd">
+                  Last name placeholder
+                </Text>
+                <div style={{ marginTop: "8px" }}>
+                  <TextField
+                    label=""
+                    value={lastNamePlaceholder}
+                    onChange={handleLastNamePlaceholderChange}
+                    autoComplete="off"
+                  />
+                </div>
+                <div style={{ marginTop: "8px" }}>
+                  <Checkbox
+                    label="Last name field is required"
+                    checked={lastNameRequired}
+                    onChange={handleLastNameRequiredChange}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField}>
+                Remove this field
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "email":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                Email address
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Placeholder
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField
+                  label=""
+                  value={emailPlaceholder}
+                  onChange={handleEmailPlaceholderChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Checkbox
+                label="This field is required"
+                checked={emailRequired}
+                onChange={handleEmailRequiredChange}
+                disabled={true} // Email is always required
+              />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField} disabled={true}>
+                Remove this field
+              </Button>
+              <div style={{ marginTop: "8px" }}>
+                <Text as="p" tone="subdued" variant="bodySm">
+                  Email field cannot be removed as it is required for the popup to function.
+                </Text>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "phone":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                Phone
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Country
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <Select
+                  label=""
+                  labelHidden
+                  options={[
+                    { label: "India (+91)", value: "IN" },
+                    { label: "United States (+1)", value: "US" },
+                    { label: "United Kingdom (+44)", value: "GB" },
+                    // Add more countries as needed
+                  ]}
+                  value={phoneCountry}
+                  onChange={handlePhoneCountryChange}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Placeholder
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField
+                  label=""
+                  value={phonePlaceholder}
+                  onChange={handlePhonePlaceholderChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Checkbox label="This field is required" checked={phoneRequired} onChange={handlePhoneRequiredChange} />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField}>
+                Remove this field
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "birthday":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                Birthday
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Format
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <Select
+                  label=""
+                  labelHidden
+                  options={[
+                    { label: "MM/DD/YYYY", value: "MM/DD/YYYY" },
+                    { label: "DD/MM/YYYY", value: "DD/MM/YYYY" },
+                    { label: "YYYY/MM/DD", value: "YYYY/MM/DD" },
+                  ]}
+                  value={birthdayFormat}
+                  onChange={handleBirthdayFormatChange}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Label
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField label="" value={birthdayLabel} onChange={handleBirthdayLabelChange} autoComplete="off" />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Day placeholder
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField
+                  label=""
+                  value={birthdayDayPlaceholder}
+                  onChange={handleBirthdayDayPlaceholderChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Month placeholder
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField
+                  label=""
+                  value={birthdayMonthPlaceholder}
+                  onChange={handleBirthdayMonthPlaceholderChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Year placeholder
+              </Text>
+              <div style={{ marginTop: "8px" }}>
+                <TextField
+                  label=""
+                  value={birthdayYearPlaceholder}
+                  onChange={handleBirthdayYearPlaceholderChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Checkbox
+                label="This field is required"
+                checked={birthdayRequired}
+                onChange={handleBirthdayRequiredChange}
+              />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField}>
+                Remove this field
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "marketingconsent":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                Marketing consent (GDPR)
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Consent text
+              </Text>
+              <div
+                style={{
+                  border: "1px solid #dde0e4",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  marginTop: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    borderBottom: "1px solid #dde0e4",
+                    paddingBottom: "8px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {marketingConsentEditor && (
+                    <MenuBar
+                      editor={marketingConsentEditor}
+                      onLinkClick={() => handleLinkModalOpen("marketingConsent")}
+                    />
+                  )}
+                </div>
+                <div style={{ height: "100px", overflow: "auto" }}>
+                  <EditorContent
+                    editor={marketingConsentEditor}
+                    onClick={() => {
+                      if (marketingConsentEditor && !marketingConsentEditor.isFocused) {
+                        marketingConsentEditor.commands.focus()
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField}>
+                Remove this field
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "smsconsent":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text variant="headingMd" as="h2">
+                SMS consent (TCPA)
+              </Text>
+              <Button plain icon={XIcon} onClick={handleEditCancel} accessibilityLabel="Close" />
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Text as="p" fontWeight="medium" variant="bodyMd">
+                Consent text
+              </Text>
+              <div
+                style={{
+                  border: "1px solid #dde0e4",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  marginTop: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    borderBottom: "1px solid #dde0e4",
+                    paddingBottom: "8px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {smsConsentEditor && (
+                    <MenuBar editor={smsConsentEditor} onLinkClick={() => handleLinkModalOpen("smsConsent")} />
+                  )}
+                </div>
+                <div style={{ height: "100px", overflow: "auto" }}>
+                  <EditorContent
+                    editor={smsConsentEditor}
+                    onClick={() => {
+                      if (smsConsentEditor && !smsConsentEditor.isFocused) {
+                        smsConsentEditor.commands.focus()
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <Button outline destructive onClick={handleRemoveField}>
+                Remove this field
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button onClick={handleEditCancel}>Cancel</Button>
+              <Button primary onClick={handleEditDone}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // If in edit mode, show the edit interface
+  if (editMode) {
+    return <div style={{ padding: "16px" }}>{renderEditMode()}</div>
+  }
+
+  // Otherwise show the normal interface
   return (
     <BlockStack gap="100">
       {/* Start Status */}
@@ -602,14 +1694,38 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
           Form
         </Text>
         <BlockStack gap="100">
-          <RowWithEdit label="Name" checked={nameChecked} onChange={handleNameCheckedChange} />
+          {nameChecked && (
+            <RowWithEdit
+              label="Name"
+              checked={nameChecked}
+              onChange={handleNameCheckedChange}
+              onEdit={() => handleFieldEdit("name")}
+            />
+          )}
 
-          <RowWithEdit label="Email address" checked={emailChecked} onChange={handleEmailCheckedChange} />
+          <RowWithEdit
+            label="Email address"
+            checked={emailChecked}
+            onChange={handleEmailCheckedChange}
+            onEdit={() => handleFieldEdit("email")}
+          />
 
-          {phoneChecked && <RowWithEdit label="Phone" checked={phoneChecked} onChange={handlePhoneCheckedChange} />}
+          {phoneChecked && (
+            <RowWithEdit
+              label="Phone"
+              checked={phoneChecked}
+              onChange={handlePhoneCheckedChange}
+              onEdit={() => handleFieldEdit("phone")}
+            />
+          )}
 
           {birthdayChecked && (
-            <RowWithEdit label="Birthday" checked={birthdayChecked} onChange={handleBirthdayCheckedChange} />
+            <RowWithEdit
+              label="Birthday"
+              checked={birthdayChecked}
+              onChange={handleBirthdayCheckedChange}
+              onEdit={() => handleFieldEdit("birthday")}
+            />
           )}
 
           {marketingConsentChecked && (
@@ -617,11 +1733,17 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
               label="Marketing Consent"
               checked={marketingConsentChecked}
               onChange={handleMarketingConsentCheckedChange}
+              onEdit={() => handleFieldEdit("marketingconsent")}
             />
           )}
 
           {smsConsentChecked && (
-            <RowWithEdit label="SMS Consent" checked={smsConsentChecked} onChange={handleSmsConsentCheckedChange} />
+            <RowWithEdit
+              label="SMS Consent"
+              checked={smsConsentChecked}
+              onChange={handleSmsConsentCheckedChange}
+              onEdit={() => handleFieldEdit("smsconsent")}
+            />
           )}
 
           <div style={{ marginTop: "16px", position: "relative" }}>
@@ -650,31 +1772,35 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
                 }}
                 data-add-field-popover
               >
-                <ActionList
-                  actionRole="menuitem"
-                  items={[
-                    {
-                      content: "Phone",
-                      onAction: () => handleAddField("phone"),
-                      disabled: phoneChecked,
-                    },
-                    {
-                      content: "Birthday",
-                      onAction: () => handleAddField("birthday"),
-                      disabled: birthdayChecked,
-                    },
-                    {
-                      content: "Marketing Consent",
-                      onAction: () => handleAddField("marketingconsent"),
-                      disabled: marketingConsentChecked,
-                    },
-                    {
-                      content: "SMS Consent",
-                      onAction: () => handleAddField("smsconsent"),
-                      disabled: smsConsentChecked,
-                    },
-                  ].filter((item) => !item.disabled)}
-                />
+                <div style={{ padding: "8px" }}>
+                  <BlockStack gap="100">
+                    {!nameChecked && (
+                      <Button fullWidth monochrome plain onClick={() => handleAddField("name")}>
+                        Name
+                      </Button>
+                    )}
+                    {!phoneChecked && (
+                      <Button fullWidth monochrome plain onClick={() => handleAddField("phone")}>
+                        Phone
+                      </Button>
+                    )}
+                    {!birthdayChecked && (
+                      <Button fullWidth monochrome plain onClick={() => handleAddField("birthday")}>
+                        Birthday
+                      </Button>
+                    )}
+                    {!marketingConsentChecked && (
+                      <Button fullWidth monochrome plain onClick={() => handleAddField("marketingconsent")}>
+                        Marketing Consent
+                      </Button>
+                    )}
+                    {!smsConsentChecked && (
+                      <Button fullWidth monochrome plain onClick={() => handleAddField("smsconsent")}>
+                        SMS Consent
+                      </Button>
+                    )}
+                  </BlockStack>
+                </div>
               </div>
             )}
           </div>
@@ -687,12 +1813,18 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
           Actions
         </Text>
         <BlockStack gap="100">
-          <RowWithEdit label="Primary button" checked={primaryButtonChecked} onChange={handlePrimaryButtonChange} />
+          <RowWithEdit
+            label="Primary button"
+            checked={primaryButtonChecked}
+            onChange={handlePrimaryButtonChange}
+            onEdit={() => {}}
+          />
 
           <RowWithEdit
             label="Secondary button"
             checked={secondaryButtonChecked}
             onChange={handleSecondaryButtonChange}
+            onEdit={() => {}}
           />
         </BlockStack>
       </div>
@@ -717,14 +1849,14 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
               marginBottom: "8px",
             }}
           >
-            {editor && <MenuBar editor={editor} />}
+            {footerEditor && <MenuBar editor={footerEditor} onLinkClick={() => handleLinkModalOpen("footer")} />}
           </div>
           <div style={{ height: "100px", overflow: "auto" }}>
             <EditorContent
-              editor={editor}
+              editor={footerEditor}
               onClick={() => {
-                if (editor && !editor.isFocused) {
-                  editor.commands.focus()
+                if (footerEditor && !footerEditor.isFocused) {
+                  footerEditor.commands.focus()
                 }
               }}
             />
@@ -733,42 +1865,61 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
       </div>
 
       {/* Link Modal */}
-      <Modal
-        open={linkModalActive}
-        onClose={handleLinkModalClose}
-        title="Insert Link"
-        primaryAction={{
-          content: "Save",
-          onAction: handleLinkSave,
-          disabled: !linkUrl.trim() || !linkText.trim(),
-        }}
-        secondaryActions={[
-          {
-            content: "Cancel",
-            onAction: handleLinkModalClose,
-          },
-        ]}
-      >
-        <Modal.Section>
-          <BlockStack gap="400">
-            <TextField
-              label="Text"
-              value={linkText}
-              onChange={setLinkText}
-              autoComplete="off"
-              placeholder="Link text to display"
-            />
-            <TextField
-              label="URL"
-              value={linkUrl}
-              onChange={setLinkUrl}
-              autoComplete="off"
-              placeholder="https://example.com"
-            />
-            <Checkbox label="Open link in new tab" checked={openInNewTab} onChange={setOpenInNewTab} />
-          </BlockStack>
-        </Modal.Section>
-      </Modal>
+      {linkModalActive && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              padding: "24px",
+              width: "400px",
+              maxWidth: "90%",
+            }}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <Text variant="headingMd" as="h2">
+                Insert Link
+              </Text>
+            </div>
+            <BlockStack gap="400">
+              <TextField
+                label="Text"
+                value={linkText}
+                onChange={setLinkText}
+                autoComplete="off"
+                placeholder="Link text to display"
+              />
+              <TextField
+                label="URL"
+                value={linkUrl}
+                onChange={setLinkUrl}
+                autoComplete="off"
+                placeholder="https://example.com"
+              />
+              <Checkbox label="Open link in new tab" checked={openInNewTab} onChange={setOpenInNewTab} />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px" }}>
+                <Button onClick={handleLinkModalClose}>Cancel</Button>
+                <Button primary onClick={handleLinkSave} disabled={!linkUrl.trim() || !linkText.trim()}>
+                  Save
+                </Button>
+              </div>
+            </BlockStack>
+          </div>
+        </div>
+      )}
 
       {/* Success status */}
       <div style={{ marginTop: "16px" }}>
@@ -808,7 +1959,12 @@ function Tab2({ config, setConfig, setHasUnsavedChanges }: any) {
             Actions
           </Text>
           <div style={{ marginTop: "8px" }}>
-            <RowWithEdit label="Button" checked={buttonChecked} onChange={handleButtonCheckedChange} />
+            <RowWithEdit
+              label="Button"
+              checked={buttonChecked}
+              onChange={handleButtonCheckedChange}
+              onEdit={() => {}}
+            />
           </div>
         </div>
       </div>

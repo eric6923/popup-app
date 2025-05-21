@@ -1,11 +1,15 @@
-{% schema %}
-{
-  "name": "Discount Popup",
-  "target": "section",
-  "settings": []
-}
-{% endschema %}
+{%  assign meta_objects = shop.metaobjects.popup_new_1.values %}
 
-<!-- Load the Referral Popup Script -->
-<div id="referral-popup-container"></div>
-<script src="{{ 'popup.js' | asset_url }}" defer></script>
+<script>
+  window.popupData = {
+    metaObjects: {{ meta_objects | json }}
+  }
+</script>
+
+{% schema %}
+    {
+      "name": "Discount popup",
+      "target": "body",
+      "javascript": "popup.js"
+    }
+{% endschema %}

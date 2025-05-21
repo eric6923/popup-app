@@ -3,7 +3,7 @@
 client_id = "d6e9acd45150f5a3adce6a58f1c4cf98"
 name = "popup-app"
 handle = "popup-app-28"
-application_url = "https://incentives-telecommunications-ethernet-implemented.trycloudflare.com"
+application_url = "https://inclusive-owners-templates-creek.trycloudflare.com"
 embedded = true
 
 [build]
@@ -23,19 +23,19 @@ api_version = "2025-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products,write_discounts,write_price_rules"
+scopes = "write_products,write_discounts,write_price_rules,write_metaobjects,write_metaobject_definitions"
 
 [auth]
 redirect_urls = [
-  "https://incentives-telecommunications-ethernet-implemented.trycloudflare.com/auth/callback",
-  "https://incentives-telecommunications-ethernet-implemented.trycloudflare.com/auth/shopify/callback",
-  "https://incentives-telecommunications-ethernet-implemented.trycloudflare.com/api/auth/callback"
+  "https://inclusive-owners-templates-creek.trycloudflare.com/auth/callback",
+  "https://inclusive-owners-templates-creek.trycloudflare.com/auth/shopify/callback",
+  "https://inclusive-owners-templates-creek.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [app_proxy]
-url = "https://incentives-telecommunications-ethernet-implemented.trycloudflare.com/app/main"
+url = "https://inclusive-owners-templates-creek.trycloudflare.com/app/main"
 subpath = "popup"
 prefix = "apps"

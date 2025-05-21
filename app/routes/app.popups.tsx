@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import {
   Page,
@@ -27,7 +26,10 @@ import {
   getPopupsByStore,
   updatePopup,
   deletePopup,
+  getPopupById,
 } from "../services/popup.server";
+import { authenticate } from "app/shopify.server";
+import { MetaobjectService } from "../services/meta.server";
 
 // Define the type for our popups
 type Popup = {
@@ -72,11 +74,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   // In a real app, you would get the storeId from the session or context
   const storeId = "cmagd0wb00000rdrik3j0l8bm"; // Replace with actual store ID retrieval
+  const metaobjectService = new MetaobjectService();
 
   try {
     if (intent === "create") {
@@ -84,10 +88,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // Convert to the enum type expected by the backend
       const type = popupType === "opt-in" ? "OPT_IN" : "SPIN_WHEEL";
 
+      // 1. First, ensure the metaobject definition exists
+      try {
+        await metaobjectService.createMetaObjectDefinition(request);
+        console.log("Metaobject definition created or already exists");
+      } catch (error) {
+        console.error("Error creating metaobject definition:", error);
+        // Continue with popup creation even if metaobject definition fails
+        // We'll handle this more gracefully
+      }
+
+      // 2. Create the popup in your database
       const newPopup = await createPopup({
         storeId,
         type,
       });
+
+      // 3. Try to create a metaobject for this popup
+      try {
+        await metaobjectService.savePopupToMetaobject(
+          request, 
+          newPopup.id, 
+          newPopup.config || {}, 
+          newPopup.isActive
+        );
+        console.log("Metaobject created for popup");
+      } catch (error) {
+        console.error("Error creating metaobject for popup:", error);
+        // Continue with popup creation even if metaobject creation fails
+        // The user can still use the popup without metaobject integration
+      }
 
       return json({
         success: true,
@@ -99,10 +129,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const id = formData.get("id") as string;
       const isActive = formData.get("isActive") === "true";
 
+      // Update popup in database
       await updatePopup({
         id,
         isActive: !isActive,
       });
+
+      // Try to update metaobject
+      try {
+        const popup = await getPopupById(id);
+        if (popup) {
+          await metaobjectService.savePopupToMetaobject(
+            request,
+            id,
+            popup.config || {},
+            !isActive
+          );
+        }
+      } catch (error) {
+        console.error("Error updating metaobject:", error);
+        // Continue even if metaobject update fails
+      }
 
       return json({ success: true, message: "Popup status updated" });
     } else if (intent === "delete") {
@@ -116,7 +163,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ success: false, message: "Unknown action" });
   } catch (error) {
     console.error("Error performing action:", error);
-    return json({ success: false, message: "An error occurred" });
+    return json({ 
+      success: false, 
+      message: error instanceof Error ? error.message : "An error occurred" 
+    });
   }
 };
 

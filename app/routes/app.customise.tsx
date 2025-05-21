@@ -903,28 +903,30 @@ export default function PopupEditor({
                               />
                             </div>
 
-                            <div>
-                              <Text variant="bodySm" as="p">
-                                Value
-                              </Text>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <TextField
-                                  type="text"
-                                  value={discountValue}
-                                  onChange={(value) => {
-                                    setDiscountValue(value)
-                                    setHasUnsavedChanges(true)
+                            {discountType !== "free-shipping" && (
+                              <div>
+                                <Text variant="bodySm" as="p">
+                                  Value
+                                </Text>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
                                   }}
-                                  autoComplete="off"
-                                />
-                                <span style={{ marginLeft: "8px" }}></span>
+                                >
+                                  <TextField
+                                    type="text"
+                                    value={discountValue}
+                                    onChange={(value) => {
+                                      setDiscountValue(value)
+                                      setHasUnsavedChanges(true)
+                                    }}
+                                    autoComplete="off"
+                                  />
+                                  <span style={{ marginLeft: "8px" }}>{discountType === "percentage" ? "%" : ""}</span>
+                                </div>
                               </div>
-                            </div>
+                            )}
 
                             <Checkbox
                               label="Set expiration on discount"

@@ -10,9 +10,9 @@ const defaultPopupConfig = {
         enabled: false,
         discountType: null,
         discountValue: null,
-        expiration: { enabled: false, days: null }
+        expiration: { enabled: false, days: null },
       },
-      manual_discount: { enabled: false, manualDiscount: null }
+      manual_discount: { enabled: false, manualDiscount: null },
     },
     stickyDiscountBar: { enabled: false },
     sidebarWidget: { enabled: false },
@@ -20,61 +20,97 @@ const defaultPopupConfig = {
       type: "TIMER",
       timerOption: { delayType: "AFTER_DELAY", delaySeconds: 3 },
       scrollOption: { percentage: 30 },
-      exitOption: { enabled: true }
+      exitOption: { enabled: true },
     },
     frequency: {
       type: "ALWAYS",
-      limit: { count: null, per: null }
+      limit: { count: null, per: null },
     },
     page_rules: {
       type: "ANY",
       match_type: "ANY",
-      conditions: [
-        { match: "EQUALS", value: "/collections/sale" }
-      ]
+      conditions: [{ match: "EQUALS", value: "/collections/sale" }],
     },
     location_rules: {
       type: "ANY",
-      countries: []
+      countries: [],
     },
     schedule: {
       type: "ALL_TIME",
       start: null,
-      end: null
-    }
+      end: null,
+    },
   },
   content: {
     Heading: "Get 10% OFF your order",
     Description: "Sign up and unlock your instant discount.",
     form: {
       fields: {
-        name: false,
-        email: true,
-        phone:false,
-        birthday:false,
-        marketingconsent:false,
-        smsconsent:false
-      }
+        marketingconsent: {
+          content: "<p>I agree to receive marketing emails<\/p>",
+          enabled: false,
+        },
+        name: {
+          layout: "horizontal", // horizontal and veritical checkbox
+          enabled: false,
+          last_name: {
+            required: true,  //checkbox
+            placeholder: "Last name", //textfield
+          },
+          field_type: "both", // dropdown that has both, only first name, only last name
+          first_name: {
+            required: true, //checkbox
+            placeholder: "First name", //textfield
+          },
+        },
+        smsconsent: {
+          content:
+            "<p>By signing up, you agree to receive recurring automated marketing messages at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Msg frequency varies. Msg & data rates may apply. View Privacy Policy & Terms.<\/p>",
+          enabled: false,
+        },
+        email: {
+          enabled: true,
+          required: true,
+          placeholder: "Email address",
+        },
+        phone: {
+          country: "IN",
+          enabled: false,
+          required: true,
+          placeholder: "Phone number",
+        },
+        birthday: {
+          day: { placeholder: "DD" },
+          year: { placeholder: "YYYY" },
+          label: "Birthday",
+          month: { placeholder: "MM" },
+          format: "MM/DD/YYYY",
+          enabled: false,
+          required: true,
+        },
+      },
     },
     actions1: {
       primary: true,
-      secondary: true
+      secondary: true,
     },
     footer: {
-      footerText: "You are signing up to receive communication via email and can unsubscribe at any time."
+      footerText:
+        "You are signing up to receive communication via email and can unsubscribe at any time.",
     },
     success: {
       heading: "Discount unlocked 🎉",
-      description: "Thanks for subscribing. Copy your discount code and apply to your next order."
+      description:
+        "Thanks for subscribing. Copy your discount code and apply to your next order.",
     },
     actions2: {
-      enabled: true
+      enabled: true,
     },
     stickydiscountbar: {
-      description: "Don't forget to use your discount code"
+      description: "Don't forget to use your discount code",
     },
     sidebarWidget: {
-      "btn-text": "Get 10% OFF"
+      "btn-text": "Get 10% OFF",
     },
     errorTexts: {
       firstName: "Please enter your first name!",
@@ -84,24 +120,24 @@ const defaultPopupConfig = {
       policy: "Please check the policy!",
       alreadySubscribed: "You have already subscribed!",
       submitError: "Sorry, please try again later!",
-      birthdayError: "Please enter valid birthday!"
-    }
+      birthdayError: "Please enter valid birthday!",
+    },
   },
   style: {
     logo: {
       url: "",
-      width: "40"
+      width: "40",
     },
     display: {
       size: "Standard",
-      alignment: "Left",
-      cornor_Radius: "Large"
+      alignment: "Center",
+      cornor_Radius: "Large",
     },
     layout: "Left",
     image: "",
     colors: {
       popup: {
-        backgroud: "FFFFFF"
+        backgroud: "FFFFFF",
       },
       text: {
         heading: "121212",
@@ -110,32 +146,32 @@ const defaultPopupConfig = {
         consent: "454545",
         error: "D72C0D",
         footerText: "454545",
-        label: "121212"
+        label: "121212",
       },
       primaryButton: {
         background: "121212",
-        text: "FFFFFF"
+        text: "FFFFFF",
       },
       secondaryButton: {
-        text: "334FB4"
+        text: "334FB4",
       },
       stickyDiscountBar: {
         background: "F3F3F3",
-        text: "121212"
+        text: "121212",
       },
       sidebarWidget: {
         background: "333333",
-        text: "FFFFFF"
-      }
+        text: "FFFFFF",
+      },
     },
-    customCss: ""
-  }
+    customCss: "",
+  },
 };
 
 // ✅ CREATE
 export async function createPopup({
   storeId,
-  type = Type.OPT_IN
+  type = Type.OPT_IN,
 }: {
   storeId: string;
   type?: Type;
@@ -145,8 +181,8 @@ export async function createPopup({
       storeId,
       type,
       isActive: true,
-      config: defaultPopupConfig
-    }
+      config: defaultPopupConfig,
+    },
   });
 }
 
@@ -154,7 +190,7 @@ export async function createPopup({
 export async function getPopupsByStore(storeId: string) {
   return prisma.popup.findMany({
     where: { storeId },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -168,7 +204,7 @@ export async function updatePopup({
   id,
   config,
   isActive,
-  type
+  type,
 }: {
   id: string;
   config?: any;
@@ -179,9 +215,9 @@ export async function updatePopup({
     where: { id },
     data: {
       ...(config && { config }),
-      ...(typeof isActive === 'boolean' && { isActive }),
-      ...(type && { type })
-    }
+      ...(typeof isActive === "boolean" && { isActive }),
+      ...(type && { type }),
+    },
   });
 }
 
